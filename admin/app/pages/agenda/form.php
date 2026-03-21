@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $profissional_id = $_POST['profissional_id'];
     $servicos_selecionados = $_POST['servicos'] ?? [];
     $data_inicio = $_POST['data_agendamento'] . ' ' . $_POST['hora_agendamento'];
-
+    
     if (empty($servicos_selecionados)) {
         $error = "Selecione pelo menos um serviço.";
     } else {
@@ -52,11 +52,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data_fim = date('Y-m-d H:i:s', strtotime($data_inicio . " + $duracao_total minutes"));
 
             // Verificar conflito de horário
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM agendamentos
-                                   WHERE profissional_id = :prof_id
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM agendamentos 
+                                   WHERE profissional_id = :prof_id 
                                    AND status NOT IN ('cancelado', 'falta')
                                    AND (
-                                       (:inicio BETWEEN data_inicio AND data_fim) OR
+                                       (:inicio BETWEEN data_inicio AND data_fim) OR 
                                        (:fim BETWEEN data_inicio AND data_fim) OR
                                        (data_inicio BETWEEN :inicio2 AND :fim2)
                                    )");
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'inicio2' => $data_inicio,
                 'fim2' => $data_fim
             ]);
-
+            
             if ($stmt->fetchColumn() > 0) {
                 throw new Exception("O profissional já possui um agendamento neste horário.");
             }
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'inicio' => $data_inicio,
                 'fim' => $data_fim
             ]);
-
+            
             // Buscar o ID inserido
             $stmt = $pdo->prepare("SELECT id FROM agendamentos WHERE profissional_id = :prof_id AND data_inicio = :inicio ORDER BY created_at DESC LIMIT 1");
             $stmt->execute(['prof_id' => $profissional_id, 'inicio' => $data_inicio]);
@@ -157,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <label class="form-label">Hora *</label>
                                 <input type="time" name="hora_agendamento" class="form-control" required>
                             </div>
-
+                            
                             <div class="col-md-12 mb-3">
                                 <label class="form-label d-block">Serviços *</label>
                                 <div class="row">

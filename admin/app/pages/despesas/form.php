@@ -71,7 +71,7 @@ $categorias = ['aluguel', 'energia', 'agua', 'internet', 'telefone', 'materiais'
                         <?php if (isset($error)): ?>
                             <div class="alert alert-danger"><?php echo $error; ?></div>
                         <?php endif; ?>
-
+                        
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Nome da Despesa *</label>

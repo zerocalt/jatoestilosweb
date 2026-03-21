@@ -23,7 +23,7 @@ try {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $valor_centavos = (int)($_POST['valor_real'] * 100);
     $descricao = sanitize($_POST['descricao']);
-
+    
     try {
         $stmt = $pdo->prepare("INSERT INTO movimentacoes_caixa (id, caixa_id, tipo, descricao, valor_centavos, operador_id) VALUES (uuid(), :caixa_id, :tipo, :descr, :valor, :operador)");
         $stmt->execute([

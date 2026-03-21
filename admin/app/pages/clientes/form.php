@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php if (isset($error)): ?>
                             <div class="alert alert-danger"><?php echo $error; ?></div>
                         <?php endif; ?>
-
+                        
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Nome Completo *</label>

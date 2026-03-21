@@ -10,10 +10,10 @@ $data_fim = $_GET['data_fim'] ?? date('Y-m-t');
 
 try {
     // 1. Receitas detalhadas por forma de pagamento
-    $stmt = $pdo->prepare("SELECT forma_pagamento, SUM(valor_centavos) as total
+    $stmt = $pdo->prepare("SELECT forma_pagamento, SUM(valor_centavos) as total 
                            FROM movimentacoes_caixa mc
                            JOIN caixas c ON c.id = mc.caixa_id
-                           WHERE c.estabelecimento_id = :estab_id
+                           WHERE c.estabelecimento_id = :estab_id 
                            AND mc.tipo = 'entrada'
                            AND DATE(mc.created_at) BETWEEN :inicio AND :fim
                            GROUP BY forma_pagamento");
@@ -21,9 +21,9 @@ try {
     $receitas_pagamento = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // 2. Despesas por categoria
-    $stmt = $pdo->prepare("SELECT categoria, SUM(valor_centavos) as total
-                           FROM despesas
-                           WHERE estabelecimento_id = :estab_id
+    $stmt = $pdo->prepare("SELECT categoria, SUM(valor_centavos) as total 
+                           FROM despesas 
+                           WHERE estabelecimento_id = :estab_id 
                            AND status = 'pago'
                            AND (pago_em BETWEEN :inicio AND :fim OR (pago_em IS NULL AND vencimento BETWEEN :inicio2 AND :fim2))
                            GROUP BY categoria");
@@ -33,7 +33,7 @@ try {
     // Totais
     $total_receitas = 0;
     foreach($receitas_pagamento as $r) $total_receitas += $r['total'];
-
+    
     $total_despesas = 0;
     foreach($despesas_categoria as $d) $total_despesas += $d['total'];
 
@@ -78,7 +78,7 @@ try {
                     <h2 class="text-center">Jato Estilos - Relatório Financeiro</h2>
                     <p class="text-center">Período: <?php echo formatDate($data_inicio); ?> até <?php echo formatDate($data_fim); ?></p>
                 </div>
-
+                
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header bg-success text-white"><h3 class="card-title">Receitas</h3></div>

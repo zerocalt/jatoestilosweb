@@ -7,10 +7,10 @@ require_once("../../config/functions.php");
 $estabelecimento_id = $_SESSION['estabelecimento_id'];
 
 try {
-    $stmt = $pdo->prepare("SELECT p.*, u.nome, u.email, u.telefone, u.foto_url as user_foto
-                           FROM profissionais p
-                           JOIN usuarios u ON u.id = p.usuario_id
-                           WHERE p.estabelecimento_id = :estab_id
+    $stmt = $pdo->prepare("SELECT p.*, u.nome, u.email, u.telefone, u.foto_url as user_foto 
+                           FROM profissionais p 
+                           JOIN usuarios u ON u.id = p.usuario_id 
+                           WHERE p.estabelecimento_id = :estab_id 
                            ORDER BY u.nome ASC");
     $stmt->execute(['estab_id' => $estabelecimento_id]);
     $profissionais = $stmt->fetchAll(PDO::FETCH_ASSOC);

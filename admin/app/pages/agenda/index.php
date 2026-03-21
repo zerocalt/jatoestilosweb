@@ -81,8 +81,8 @@ try {
                 <?php else: ?>
                     <?php foreach ($agendamentos as $ag): ?>
                         <div class="col-md-6 col-lg-4">
-                            <div class="card shadow-sm mb-4 border-start border-4 <?php
-                                echo $ag['status'] == 'concluido' ? 'border-success' : ($ag['status'] == 'cancelado' ? 'border-danger' : 'border-primary');
+                            <div class="card shadow-sm mb-4 border-start border-4 <?php 
+                                echo $ag['status'] == 'concluido' ? 'border-success' : ($ag['status'] == 'cancelado' ? 'border-danger' : 'border-primary'); 
                             ?>">
                                 <div class="card-header">
                                     <div class="d-flex justify-content-between">
@@ -106,7 +106,7 @@ try {
                                         <?php if ($ag['status'] == 'pendente' || $ag['status'] == 'confirmado'): ?>
                                             <button onclick="updateStatus('<?php echo $ag['agendamento_id']; ?>', 'em_atendimento')" class="btn btn-sm btn-outline-primary">Iniciar</button>
                                         <?php endif; ?>
-
+                                        
                                         <?php if ($ag['status'] == 'em_atendimento'): ?>
                                             <a href="concluir.php?id=<?php echo $ag['agendamento_id']; ?>" class="btn btn-sm btn-success">Concluir</a>
                                         <?php endif; ?>

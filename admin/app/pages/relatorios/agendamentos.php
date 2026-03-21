@@ -10,9 +10,9 @@ $data_fim = $_GET['data_fim'] ?? date('Y-m-t');
 
 try {
     // 1. Agendamentos por status
-    $stmt = $pdo->prepare("SELECT status, COUNT(*) as total, SUM(valor_total_centavos) as v_total
-                           FROM agendamentos
-                           WHERE estabelecimento_id = :estab_id
+    $stmt = $pdo->prepare("SELECT status, COUNT(*) as total, SUM(valor_total_centavos) as v_total 
+                           FROM agendamentos 
+                           WHERE estabelecimento_id = :estab_id 
                            AND DATE(data_inicio) BETWEEN :inicio AND :fim
                            GROUP BY status");
     $stmt->execute(['estab_id' => $estabelecimento_id, 'inicio' => $data_inicio, 'fim' => $data_fim]);
@@ -23,7 +23,7 @@ try {
                            FROM agendamentos a
                            JOIN profissionais p ON p.id = a.profissional_id
                            JOIN usuarios u ON u.id = p.usuario_id
-                           WHERE a.estabelecimento_id = :estab_id
+                           WHERE a.estabelecimento_id = :estab_id 
                            AND DATE(a.data_inicio) BETWEEN :inicio AND :fim
                            AND a.status = 'concluido'
                            GROUP BY u.nome

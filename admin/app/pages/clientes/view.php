@@ -24,15 +24,15 @@ try {
     }
 
     // Histórico de atendimentos
-    $stmt = $pdo->prepare("SELECT a.*, u.nome as profissional_nome,
-                                  (SELECT GROUP_CONCAT(s.nome SEPARATOR ', ')
-                                   FROM agendamento_servicos ags
-                                   JOIN servicos s ON s.id = ags.servico_id
+    $stmt = $pdo->prepare("SELECT a.*, u.nome as profissional_nome, 
+                                  (SELECT GROUP_CONCAT(s.nome SEPARATOR ', ') 
+                                   FROM agendamento_servicos ags 
+                                   JOIN servicos s ON s.id = ags.servico_id 
                                    WHERE ags.agendamento_id = a.id) as servicos
                            FROM agendamentos a
                            JOIN profissionais p ON p.id = a.profissional_id
                            JOIN usuarios u ON u.id = p.usuario_id
-                           WHERE a.cliente_id = :cliente_id
+                           WHERE a.cliente_id = :cliente_id 
                            ORDER BY a.data_inicio DESC");
     $stmt->execute(['cliente_id' => $id]);
     $historico = $stmt->fetchAll(PDO::FETCH_ASSOC);

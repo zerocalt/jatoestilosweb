@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Criar Usuario (perfil profissional)
             $stmt = $pdo->prepare("INSERT INTO usuarios (id, nome, email, telefone, perfil) VALUES (uuid(), :nome, :email, :telefone, 'profissional')");
             $stmt->execute(['nome' => $nome, 'email' => $email, 'telefone' => $telefone]);
-
+            
             $stmt = $pdo->prepare("SELECT id FROM usuarios WHERE email = :email ORDER BY created_at DESC LIMIT 1");
             $stmt->execute(['email' => $email]);
             $user_id = $stmt->fetchColumn();
@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Criar Profissional
             $stmt = $pdo->prepare("INSERT INTO profissionais (id, usuario_id, estabelecimento_id, cargo, comissao_percentual, ativo) VALUES (uuid(), :user_id, :estab_id, :cargo, :comissao, :ativo)");
             $stmt->execute(['user_id' => $user_id, 'estab_id' => $estabelecimento_id, 'cargo' => $cargo, 'comissao' => $comissao_percentual, 'ativo' => $ativo]);
-
+            
             $stmt = $pdo->prepare("SELECT id FROM profissionais WHERE usuario_id = :user_id");
             $stmt->execute(['user_id' => $user_id]);
             $id = $stmt->fetchColumn();
@@ -159,7 +159,7 @@ $dias_semana = ["Domingo", "Segunda", "Ter√ßa", "Quarta", "Quinta", "Sexta", "S√
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php foreach ($dias_semana as $idx => $dia):
+                                        <?php foreach ($dias_semana as $idx => $dia): 
                                             $checked = isset($horarios[$idx]);
                                             $h_ini = $checked ? $horarios[$idx]['hora_inicio'] : '08:00';
                                             $h_fim = $checked ? $horarios[$idx]['hora_fim'] : '18:00';

@@ -13,10 +13,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
-        $stmt = $pdo->prepare("SELECT u.*, e.id as estabelecimento_id
-                               FROM usuarios u
+        $stmt = $pdo->prepare("SELECT u.*, e.id as estabelecimento_id 
+                               FROM usuarios u 
                                LEFT JOIN estabelecimentos e ON e.admin_id = u.id
-                               WHERE u.email = :email AND u.perfil = 'admin' AND u.ativo = 1
+                               WHERE u.email = :email AND u.perfil = 'admin' AND u.ativo = 1 
                                LIMIT 1");
         $stmt->execute(['email' => $email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['admin_nome'] = $user['nome'];
             $_SESSION['admin_email'] = $user['email'];
             $_SESSION['estabelecimento_id'] = $user['estabelecimento_id'];
-
+            
             header("Location: ../index/index.php");
             exit;
         } else {

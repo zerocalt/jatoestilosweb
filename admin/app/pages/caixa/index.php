@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($action == 'fechar' && $caixa_aberto) {
             $valor_informado = (int)($_POST['valor_informado'] * 100);
             $valor_esperado = $caixa_aberto['valor_inicial_centavos'] + $total_entradas - $total_saidas;
-
+            
             $stmt = $pdo->prepare("UPDATE caixas SET status = 'fechado', fechamento_em = NOW(), valor_esperado_centavos = :esperado, valor_informado_centavos = :informado, observacoes = :obs WHERE id = :id");
             $stmt->execute([
                 'esperado' => $valor_esperado,

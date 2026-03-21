@@ -100,7 +100,7 @@ $categorias = ['aluguel', 'energia', 'agua', 'internet', 'telefone', 'materiais'
                                         <td><?php echo formatDate($d['vencimento']); ?></td>
                                         <td class="fw-bold"><?php echo formatMoney($d['valor_centavos']); ?></td>
                                         <td>
-                                            <?php
+                                            <?php 
                                                 $badge = $d['status'] == 'pago' ? 'bg-success' : ($d['status'] == 'atrasado' ? 'bg-danger' : 'bg-warning');
                                                 echo "<span class='badge $badge'>".ucfirst($d['status'])."</span>";
                                             ?>

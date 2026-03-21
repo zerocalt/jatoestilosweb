@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = "As senhas não coincidem.";
             }
         }
-
+        
         // Refresh data
         header("Location: index.php?success=1");
         exit;

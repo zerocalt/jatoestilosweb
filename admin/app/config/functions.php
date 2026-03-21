@@ -41,7 +41,7 @@ function formatStatus($status) {
         'cancelado' => 'bg-danger',
         'falta' => 'bg-dark'
     ];
-
+    
     $labels = [
         'pendente' => 'Pendente',
         'confirmado' => 'Confirmado',

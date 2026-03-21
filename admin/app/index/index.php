@@ -14,8 +14,8 @@ try {
     $stats_status = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
 
     // 2. Receita do dia
-    $stmt = $pdo->prepare("SELECT SUM(valor_centavos) FROM movimentacoes_caixa mc
-                           JOIN caixas c ON c.id = mc.caixa_id
+    $stmt = $pdo->prepare("SELECT SUM(valor_centavos) FROM movimentacoes_caixa mc 
+                           JOIN caixas c ON c.id = mc.caixa_id 
                            WHERE c.estabelecimento_id = :estab_id AND DATE(mc.created_at) = :hoje AND mc.tipo = 'entrada'");
     $stmt->execute(['estab_id' => $estabelecimento_id, 'hoje' => $hoje]);
     $receita_hoje = $stmt->fetchColumn() ?: 0;
@@ -36,7 +36,7 @@ try {
     for ($i = 6; $i >= 0; $i--) {
         $d = date('Y-m-d', strtotime("-$i days"));
         $grafico_datas[] = date('d/m', strtotime($d));
-
+        
         $st = $pdo->prepare("SELECT COUNT(*) FROM agendamentos WHERE estabelecimento_id = :estab_id AND DATE(data_inicio) = :data AND status != 'cancelado'");
         $st->execute(['estab_id' => $estabelecimento_id, 'data' => $d]);
         $grafico_valores[] = $st->fetchColumn();

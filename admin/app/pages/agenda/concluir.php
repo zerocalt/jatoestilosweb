@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $desconto_real = $_POST['desconto_real'] ?: 0;
         $desconto_centavos = (int)($desconto_real * 100);
         $valor_total_centavos = $agendamento['valor_total_centavos'] ?: 0;
-
+        
         // Se valor_total_centavos for null na view (acontece antes de concluir), somamos dos servicos
         if (!$valor_total_centavos) {
             $stmt = $pdo->prepare("SELECT SUM(valor_cobrado_centavos) FROM agendamento_servicos WHERE agendamento_id = :id");
@@ -137,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <?php if (isset($error)): ?>
                                     <div class="alert alert-danger"><?php echo $error; ?></div>
                                 <?php endif; ?>
-
+                                
                                 <?php if (!$caixa_id): ?>
                                     <div class="alert alert-warning">
                                         <i class="bi bi-exclamation-triangle"></i> Atenção: O caixa está fechado. <br>

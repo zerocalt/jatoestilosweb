@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['admin_email'] = $user['email'];
             $_SESSION['estabelecimento_id'] = $user['estabelecimento_id'];
             
-            header("Location: ../index/index.php");
+            header("Location: ../pages/dashboard/index.php");
             exit;
         } else {
             header("Location: ../../../admin/login.php?error=1");

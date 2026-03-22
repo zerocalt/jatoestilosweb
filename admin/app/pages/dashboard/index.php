@@ -1,8 +1,8 @@
 <?php
-require_once("../top/topo.php");
-require_once("../menu/menu.php");
-require_once("../config/database.php");
-require_once("../config/functions.php");
+require_once("../../top/topo.php");
+require_once("../../menu/menu.php");
+require_once("../../config/database.php");
+require_once("../../config/functions.php");
 
 $estabelecimento_id = $_SESSION['estabelecimento_id'];
 $hoje = date('Y-m-d');
@@ -175,4 +175,4 @@ try {
     chart.render();
 </script>
 
-<?php require_once("../layout/footer.php"); ?>
+<?php require_once("../../layout/footer.php"); ?>

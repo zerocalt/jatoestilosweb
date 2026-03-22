@@ -1,5 +1,6 @@
 <?php
 require_once("../top/topo.php");
+$active_menu = 'dashboard';
 require_once("../menu/menu.php");
 require_once("../config/database.php");
 require_once("../config/functions.php");
@@ -60,43 +61,43 @@ try {
             <!-- Small boxes (Stat box) -->
             <div class="row">
                 <div class="col-lg-3 col-6">
-                    <div class="small-box bg-info">
+                    <div class="small-box text-bg-info">
                         <div class="inner">
                             <h3><?php echo ($stats_status['confirmado'] ?? 0) + ($stats_status['pendente'] ?? 0) + ($stats_status['em_atendimento'] ?? 0); ?></h3>
                             <p>Agendamentos Hoje</p>
                         </div>
-                        <div class="icon"><i class="bi bi-calendar-check"></i></div>
-                        <a href="../agenda/index.php" class="small-box-footer">Ver Agenda <i class="bi bi-arrow-right-circle"></i></a>
+                        <i class="bi bi-calendar-check small-box-icon"></i>
+                        <a href="../agenda/index.php" class="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover">Ver Agenda <i class="bi bi-link-45deg"></i></a>
                     </div>
                 </div>
                 <div class="col-lg-3 col-6">
-                    <div class="small-box bg-success">
+                    <div class="small-box text-bg-success">
                         <div class="inner">
                             <h3><?php echo formatMoney($receita_hoje); ?></h3>
                             <p>Receita do Dia</p>
                         </div>
-                        <div class="icon"><i class="bi bi-cash-coin"></i></div>
-                        <a href="../caixa/index.php" class="small-box-footer">Ver Caixa <i class="bi bi-arrow-right-circle"></i></a>
+                        <i class="bi bi-cash-coin small-box-icon"></i>
+                        <a href="../caixa/index.php" class="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover">Ver Caixa <i class="bi bi-link-45deg"></i></a>
                     </div>
                 </div>
                 <div class="col-lg-3 col-6">
-                    <div class="small-box bg-warning">
+                    <div class="small-box text-bg-warning">
                         <div class="inner">
                             <h3><?php echo $stats_status['concluido'] ?? 0; ?></h3>
                             <p>Atendimentos Concluídos</p>
                         </div>
-                        <div class="icon"><i class="bi bi-person-check"></i></div>
-                        <a href="../relatorios/agendamentos.php" class="small-box-footer">Relatórios <i class="bi bi-arrow-right-circle"></i></a>
+                        <i class="bi bi-person-check small-box-icon"></i>
+                        <a href="../relatorios/agendamentos.php" class="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover">Relatórios <i class="bi bi-link-45deg"></i></a>
                     </div>
                 </div>
                 <div class="col-lg-3 col-6">
-                    <div class="small-box <?php echo $caixa_aberto ? 'bg-primary' : 'bg-danger'; ?>">
+                    <div class="small-box <?php echo $caixa_aberto ? 'text-bg-primary' : 'text-bg-danger'; ?>">
                         <div class="inner">
                             <h3><?php echo $caixa_aberto ? 'Aberto' : 'Fechado'; ?></h3>
                             <p>Status do Caixa</p>
                         </div>
-                        <div class="icon"><i class="bi bi-safe"></i></div>
-                        <a href="../caixa/index.php" class="small-box-footer">Ir para Caixa <i class="bi bi-arrow-right-circle"></i></a>
+                        <i class="bi bi-safe small-box-icon"></i>
+                        <a href="../caixa/index.php" class="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover">Ir para Caixa <i class="bi bi-link-45deg"></i></a>
                     </div>
                 </div>
             </div>

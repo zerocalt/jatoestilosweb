@@ -22,7 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome = sanitize($_POST['nome']);
     $descricao = sanitize($_POST['descricao']);
     $duracao_minutos = (int)$_POST['duracao_minutos'];
-    $valor_centavos = (int)($_POST['valor_real'] * 100);
+    $valor_real = str_replace(['.', ','], ['', '.'], $_POST['valor_real']);
+    $valor_centavos = (int)round((float)$valor_real * 100);
     $ativo = isset($_POST['ativo']) ? 1 : 0;
 
     try {
@@ -86,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                             <div class="col-md-3 mb-3">
                                 <label class="form-label">Valor (R$) *</label>
-                                <input type="number" step="0.01" name="valor_real" class="form-control" value="<?php echo $servico ? ($servico['valor_centavos'] / 100) : '0.00'; ?>" required>
+                                <input type="text" id="valor" name="valor_real" class="form-control mask-money" value="<?php echo $servico ? number_format($servico['valor_centavos'] / 100, 2, ',', '.') : '0,00'; ?>" required>
                             </div>
                             <div class="col-md-12 mb-3">
                                 <label class="form-label">Descrição</label>

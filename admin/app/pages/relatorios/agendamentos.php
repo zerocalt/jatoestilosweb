@@ -1,5 +1,7 @@
 <?php
 require_once("../../top/topo.php");
+$active_menu = 'relatorios';
+$active_submenu = 'agendamentos';
 require_once("../../menu/menu.php");
 require_once("../../config/database.php");
 require_once("../../config/functions.php");

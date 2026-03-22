@@ -1,5 +1,6 @@
 <?php
 require_once("../../top/topo.php");
+$active_menu = 'dashboard';
 require_once("../../menu/menu.php");
 require_once("../../config/database.php");
 require_once("../../config/functions.php");
@@ -60,42 +61,44 @@ try {
             <!-- Small boxes (Stat box) -->
             <div class="row">
                 <div class="col-lg-3 col-6">
-                    <div class="small-box bg-info">
+                    <div class="small-box text-bg-primary">
                         <div class="inner">
                             <h3><?php echo ($stats_status['confirmado'] ?? 0) + ($stats_status['pendente'] ?? 0) + ($stats_status['em_atendimento'] ?? 0); ?></h3>
                             <p>Agendamentos Hoje</p>
                         </div>
-                        <div class="icon"><i class="bi bi-calendar-check"></i></div>
+                        <svg class="small-box-icon" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M17 3h4a1 1 0 011 1v16a1 1 0 01-1 1H3a1 1 0 01-1-1V4a1 1 0 011-1h4V1h2v2h6V1h2v2zM4 9v10h16V9H4zm2 2h2v2H6v-2zm0 4h2v2H6v-2zm4-4h2v2h-2v-2zm0 4h2v2h-2v-2zm4-4h2v2h-2v-2zm0 4h2v2h-2v-2z"></path>
+                        </svg>
                         <a href="../agenda/index.php" class="small-box-footer">Ver Agenda <i class="bi bi-arrow-right-circle"></i></a>
                     </div>
                 </div>
                 <div class="col-lg-3 col-6">
-                    <div class="small-box bg-success">
+                    <div class="small-box text-bg-success">
                         <div class="inner">
                             <h3><?php echo formatMoney($receita_hoje); ?></h3>
                             <p>Receita do Dia</p>
                         </div>
-                        <div class="icon"><i class="bi bi-cash-coin"></i></div>
+                        <svg class="small-box-icon" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
                         <a href="../caixa/index.php" class="small-box-footer">Ver Caixa <i class="bi bi-arrow-right-circle"></i></a>
                     </div>
                 </div>
                 <div class="col-lg-3 col-6">
-                    <div class="small-box bg-warning">
+                    <div class="small-box text-bg-warning">
                         <div class="inner">
                             <h3><?php echo $stats_status['concluido'] ?? 0; ?></h3>
                             <p>Atendimentos Concluídos</p>
                         </div>
-                        <div class="icon"><i class="bi bi-person-check"></i></div>
+                        <svg class="small-box-icon" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
                         <a href="../relatorios/agendamentos.php" class="small-box-footer">Relatórios <i class="bi bi-arrow-right-circle"></i></a>
                     </div>
                 </div>
                 <div class="col-lg-3 col-6">
-                    <div class="small-box <?php echo $caixa_aberto ? 'bg-primary' : 'bg-danger'; ?>">
+                    <div class="small-box <?php echo $caixa_aberto ? 'text-bg-primary' : 'text-bg-danger'; ?>">
                         <div class="inner">
                             <h3><?php echo $caixa_aberto ? 'Aberto' : 'Fechado'; ?></h3>
                             <p>Status do Caixa</p>
                         </div>
-                        <div class="icon"><i class="bi bi-safe"></i></div>
+                        <svg class="small-box-icon" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 6H4C2.9 6 2 6.9 2 8v8c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM20 16H4V8h16v8z"/><path d="M7 9h2v2H7V9zm0 4h2v2H7v-2zm8-4h2v2h-2V9zm0 4h2v2h-2v-2z"/><path d="M12 10.5c-1.1 0-2 .9-2 2 0 .73.4 1.36 1 1.7V15h2v-.8c.6-.34 1-.97 1-1.7 0-1.1-.9-2-2-2zm0 2.5c-.28 0-.5-.22-.5-.5S11.72 12.5 12 12.5s.5.22.5.5-.22.5-.5.5z"/></svg>
                         <a href="../caixa/index.php" class="small-box-footer">Ir para Caixa <i class="bi bi-arrow-right-circle"></i></a>
                     </div>
                 </div>

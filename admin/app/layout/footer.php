@@ -31,6 +31,16 @@
       crossorigin="anonymous"
     ></script>
     <!--end::Required Plugin(Bootstrap 5)--><!--begin::Required Plugin(AdminLTE)-->
+    <script src="../../js/jquery.maskMoney.min.js"></script>
+    <script>
+      $(function () {
+        $('#valor, .mask-money').maskMoney({
+          thousands: '.',
+          decimal: ',',
+          precision: 2,
+        });
+      });
+    </script>
     <script src="../../js/adminlte.js"></script>
     <!--end::Required Plugin(AdminLTE)--><!--begin::OverlayScrollbars Configure-->
     <script>

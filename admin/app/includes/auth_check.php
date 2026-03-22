@@ -7,7 +7,7 @@ if (session_status() === PHP_SESSION_NONE) {
 if (!isset($_SESSION['admin_id'])) {
     // We are usually 3 levels deep from the admin root (e.g., app/pages/dashboard/index.php)
     // Redirecting to login.php in the admin root.
-    header("Location: ../../../login.php");
+    header("Location: /jatoestilos/admin/login.php");
     exit;
 }
 ?>

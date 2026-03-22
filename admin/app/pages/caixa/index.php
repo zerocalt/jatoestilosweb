@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <input type="hidden" name="action" value="abrir">
                                 <div class="mb-3 text-start">
                                     <label class="form-label">Valor Inicial em Caixa (Troco) - R$</label>
-                                    <input type="number" step="0.01" name="valor_inicial" class="form-control" value="0.00" required>
+                                    <input type="text" step="0.01" name="valor_inicial" class="form-control mask-money" value="0,00" required>
                                 </div>
                                 <button type="submit" class="btn btn-primary btn-lg w-100">Abrir Caixa</button>
                             </form>
@@ -195,7 +195,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Valor Total em Dinheiro no Caixa (Contagem Física)</label>
-                        <input type="number" step="0.01" name="valor_informado" class="form-control" required>
+                        <input type="text" step="0.01" name="valor_informado" class="form-control mask-money" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Observações</label>

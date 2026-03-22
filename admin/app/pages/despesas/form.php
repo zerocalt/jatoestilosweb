@@ -94,7 +94,7 @@ $categorias = ['aluguel', 'energia', 'agua', 'internet', 'telefone', 'materiais'
                             </div>
                             <div class="col-md-3 mb-3">
                                 <label class="form-label">Valor (R$) *</label>
-                                <input type="number" step="0.01" name="valor_real" class="form-control" value="<?php echo $despesa ? ($despesa['valor_centavos'] / 100) : '0.00'; ?>" required>
+                                <input type="text" step="0.01" name="valor_real" class="form-control mask-money" value="<?php echo $despesa ? ($despesa['valor_centavos'] / 100) : '0.00'; ?>" required>
                             </div>
                             <div class="col-md-3 mb-3">
                                 <label class="form-label">Vencimento</label>

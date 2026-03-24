@@ -3,11 +3,11 @@ require_once("../../top/topo.php");
 require_once("../../menu/menu.php");
 require_once("../../config/database.php");
 require_once("../../config/functions.php");
-
+ 
 $estabelecimento_id = $_SESSION['estabelecimento_id'];
 $id = $_GET['id'] ?? null;
 $cliente = null;
-
+ 
 if ($id) {
     $stmt = $pdo->prepare("SELECT * FROM clientes WHERE id = :id AND estabelecimento_id = :estab_id");
     $stmt->execute(['id' => $id, 'estab_id' => $estabelecimento_id]);
@@ -17,44 +17,175 @@ if ($id) {
         exit;
     }
 }
-
+ 
+// ── Função de upload de foto ───────────────────
+function uploadFotoCliente(array $arquivo, string $estabelecimento_id, string $cliente_id): string|false {
+    $tipos_permitidos = ['image/jpeg', 'image/png', 'image/webp'];
+    $tamanho_max      = 10 * 1024 * 1024; // 10MB
+ 
+    // Validações
+    if ($arquivo['error'] !== UPLOAD_ERR_OK)   return false;
+    if ($arquivo['size'] > $tamanho_max)        return false;
+    if (!in_array($arquivo['type'], $tipos_permitidos)) return false;
+    if (!is_uploaded_file($arquivo['tmp_name'])) return false;
+ 
+    // Cria pasta do estabelecimento/clientes
+    $pasta = $_SERVER['DOCUMENT_ROOT'] . "/uploads/jato-estilos/estabelecimentos/{$estabelecimento_id}/clientes/";
+    if (!is_dir($pasta)) {
+        mkdir($pasta, 0755, true);
+        // Protege a pasta contra execução de PHP
+        file_put_contents($pasta . '.htaccess',
+            "Options -Indexes\n" .
+            "<FilesMatch \"\\.(php|php5|phtml|pl|py|jsp|asp)$\">\n" .
+            "    Deny from all\n" .
+            "</FilesMatch>\n"
+        );
+    }
+ 
+    // Nome do arquivo = ID do cliente (substitui foto anterior automaticamente)
+    $destino = $pasta . $cliente_id . '.jpg';
+ 
+    // Comprime e redimensiona com GD
+    $info = getimagesize($arquivo['tmp_name']);
+    if (!$info) return false;
+ 
+    switch ($info['mime']) {
+        case 'image/jpeg': $img = imagecreatefromjpeg($arquivo['tmp_name']); break;
+        case 'image/png':  $img = imagecreatefrompng($arquivo['tmp_name']);  break;
+        case 'image/webp': $img = imagecreatefromwebp($arquivo['tmp_name']); break;
+        default: return false;
+    }
+ 
+    // Corrige orientação EXIF (fotos tiradas pelo celular)
+    if (function_exists('exif_read_data') && $info['mime'] === 'image/jpeg') {
+        $exif = @exif_read_data($arquivo['tmp_name']);
+        if (!empty($exif['Orientation'])) {
+            switch ($exif['Orientation']) {
+                case 3: $img = imagerotate($img, 180, 0); break;
+                case 6: $img = imagerotate($img, -90, 0); break;
+                case 8: $img = imagerotate($img, 90, 0);  break;
+            }
+        }
+    }
+ 
+    // Redimensiona mantendo proporção (máx 400x400)
+    $orig_w = imagesx($img);
+    $orig_h = imagesy($img);
+    $max    = 400;
+ 
+    if ($orig_w > $max || $orig_h > $max) {
+        $ratio = min($max / $orig_w, $max / $orig_h);
+        $novo_w = (int)($orig_w * $ratio);
+        $novo_h = (int)($orig_h * $ratio);
+        $redim  = imagecreatetruecolor($novo_w, $novo_h);
+        imagecopyresampled($redim, $img, 0, 0, 0, 0, $novo_w, $novo_h, $orig_w, $orig_h);
+        imagedestroy($img);
+        $img = $redim;
+    }
+ 
+    // Salva como JPEG com qualidade 80%
+    imagejpeg($img, $destino, 80);
+    imagedestroy($img);
+ 
+    // Retorna a URL pública
+    return "https://jairoferraz.com.br/uploads/jato-estilos/estabelecimentos/{$estabelecimento_id}/clientes/{$cliente_id}.jpg";
+}
+ 
+// ── Processamento do formulário ────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nome = sanitize($_POST['nome']);
-    $telefone = sanitize($_POST['telefone']);
-    $email = sanitize($_POST['email']);
-    $cpf = sanitize($_POST['cpf']);
+    $nome            = sanitize($_POST['nome']);
+    $telefone        = sanitize($_POST['telefone']);
+    $email           = sanitize($_POST['email']);
+    $cpf             = sanitize($_POST['cpf']);
     $data_nascimento = $_POST['data_nascimento'] ?: null;
-    $observacoes = sanitize($_POST['observacoes']);
-
+    $observacoes     = sanitize($_POST['observacoes']);
+ 
     try {
         if ($id) {
-            $stmt = $pdo->prepare("UPDATE clientes SET nome = :nome, telefone = :telefone, email = :email, cpf = :cpf, data_nascimento = :data_nascimento, observacoes = :observacoes WHERE id = :id AND estabelecimento_id = :estab_id");
+            // ── Edição ─────────────────────────
+            $stmt = $pdo->prepare("UPDATE clientes SET nome = :nome, telefone = :telefone, email = :email, cpf = :cpf, data_nascimento = :data_nascimento, observacoes = :observacoes, updated_at = NOW() WHERE id = :id AND estabelecimento_id = :estab_id");
             $stmt->execute([
-                'nome' => $nome,
-                'telefone' => $telefone,
-                'email' => $email,
-                'cpf' => $cpf,
+                'nome'            => $nome,
+                'telefone'        => $telefone,
+                'email'           => $email,
+                'cpf'             => $cpf,
                 'data_nascimento' => $data_nascimento,
-                'observacoes' => $observacoes,
-                'id' => $id,
-                'estab_id' => $estabelecimento_id
+                'observacoes'     => $observacoes,
+                'id'              => $id,
+                'estab_id'        => $estabelecimento_id,
             ]);
+ 
+            // Upload de foto (se enviou uma nova)
+            if (!empty($_FILES['foto']['name'])) {
+                $url_foto = uploadFotoCliente($_FILES['foto'], $estabelecimento_id, $id);
+                if ($url_foto) {
+                    // Atualiza foto_url na tabela usuarios (se o cliente tem conta)
+                    $pdo->prepare("UPDATE usuarios u INNER JOIN clientes c ON c.usuario_id = u.id SET u.foto_url = ?, u.updated_at = NOW() WHERE c.id = ? AND c.estabelecimento_id = ?")
+                        ->execute([$url_foto, $id, $estabelecimento_id]);
+                } else {
+                    $error = "Erro ao processar a foto. Verifique o formato e tamanho (máx 10MB).";
+                }
+            }
+ 
         } else {
-            $stmt = $pdo->prepare("INSERT INTO clientes (estabelecimento_id, nome, telefone, email, cpf, data_nascimento, observacoes) VALUES (:estab_id, :nome, :telefone, :email, :cpf, :data_nascimento, :observacoes)");
+            // ── Cadastro ───────────────────────
+            $novo_id = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+                mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+                mt_rand(0, 0xffff),
+                mt_rand(0, 0x0fff) | 0x4000,
+                mt_rand(0, 0x3fff) | 0x8000,
+                mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+            );
+ 
+            $stmt = $pdo->prepare("INSERT INTO clientes (id, estabelecimento_id, nome, telefone, email, cpf, data_nascimento, observacoes) VALUES (:id, :estab_id, :nome, :telefone, :email, :cpf, :data_nascimento, :observacoes)");
             $stmt->execute([
-                'estab_id' => $estabelecimento_id,
-                'nome' => $nome,
-                'telefone' => $telefone,
-                'email' => $email,
-                'cpf' => $cpf,
+                'id'              => $novo_id,
+                'estab_id'        => $estabelecimento_id,
+                'nome'            => $nome,
+                'telefone'        => $telefone,
+                'email'           => $email,
+                'cpf'             => $cpf,
                 'data_nascimento' => $data_nascimento,
-                'observacoes' => $observacoes
+                'observacoes'     => $observacoes,
             ]);
+ 
+            // Upload de foto após criar o cliente (precisa do ID)
+            if (!empty($_FILES['foto']['name'])) {
+                $url_foto = uploadFotoCliente($_FILES['foto'], $estabelecimento_id, $novo_id);
+                if ($url_foto) {
+                    $pdo->prepare("UPDATE usuarios u INNER JOIN clientes c ON c.usuario_id = u.id SET u.foto_url = ?, u.updated_at = NOW() WHERE c.id = ? AND c.estabelecimento_id = ?")
+                        ->execute([$url_foto, $novo_id, $estabelecimento_id]);
+                }
+                // Não bloqueia o cadastro se a foto falhar
+            }
+ 
+            $id = $novo_id;
         }
-        header("Location: index.php?success=1");
-        exit;
+ 
+        if (!isset($error)) {
+            header("Location: index.php?success=1");
+            exit;
+        }
+ 
     } catch (PDOException $e) {
         $error = "Erro ao salvar: " . $e->getMessage();
+    }
+}
+ 
+// ── URL da foto atual ──────────────────────────
+$foto_url = null;
+if ($cliente) {
+    $stmt_foto = $pdo->prepare("SELECT u.foto_url FROM usuarios u INNER JOIN clientes c ON c.usuario_id = u.id WHERE c.id = ? AND c.estabelecimento_id = ?");
+    $stmt_foto->execute([$id, $estabelecimento_id]);
+    $foto_row = $stmt_foto->fetch(PDO::FETCH_ASSOC);
+    $foto_url = $foto_row['foto_url'] ?? null;
+ 
+    // Verifica também se já existe o arquivo mesmo sem conta
+    if (!$foto_url) {
+        $caminho_foto = $_SERVER['DOCUMENT_ROOT'] . "/uploads/jato-estilos/estabelecimentos/{$estabelecimento_id}/clientes/{$id}.jpg";
+        if (file_exists($caminho_foto)) {
+            $foto_url = "https://jairoferraz.com.br/uploads/jato-estilos/estabelecimentos/{$estabelecimento_id}/clientes/{$id}.jpg";
+        }
     }
 }
 ?>
@@ -72,13 +203,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="app-content">
         <div class="container-fluid">
             <div class="card">
-                <form method="post">
+                <form method="post" enctype="multipart/form-data">
                     <div class="card-body">
                         <?php if (isset($error)): ?>
                             <div class="alert alert-danger"><?php echo $error; ?></div>
                         <?php endif; ?>
                         
                         <div class="row">
+                            
+                        <!-- Foto do cliente -->
+                            <div class="col-md-12 mb-4">
+                                <label class="form-label d-block">Foto do Cliente</label>
+                                <div class="d-flex align-items-center gap-3">
+ 
+                                    <!-- Preview da foto atual ou placeholder -->
+                                    <img id="preview-foto"
+                                         src="<?php echo $foto_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($cliente['nome'] ?? 'Cliente') . '&background=4169B8&color=fff&size=100'; ?>"
+                                         alt="Foto"
+                                         style="width:100px; height:100px; object-fit:cover; border-radius:50%; border:2px solid #dee2e6;">
+ 
+                                    <div>
+                                        <input type="file"
+                                               name="foto"
+                                               id="foto"
+                                               class="form-control"
+                                               accept="image/jpeg,image/png,image/webp"
+                                               style="max-width: 300px;"
+                                               onchange="previewFoto(this)">
+                                        <small class="text-muted d-block mt-1">JPEG, PNG ou WebP — máx. 10MB</small>
+                                        <?php if ($foto_url): ?>
+                                            <small class="text-success">
+                                                <i class="bi bi-check-circle"></i> Foto cadastrada — envie outra para substituir
+                                            </small>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Campos do formulário -->
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Nome Completo *</label>
                                 <input type="text" name="nome" class="form-control" value="<?php echo $cliente ? sanitize($cliente['nome']) : ''; ?>" required>
@@ -115,4 +277,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </main>
 
+<script>
+// Preview da foto antes de enviar
+function previewFoto(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('preview-foto').src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
 <?php require_once("../../layout/footer.php"); ?>

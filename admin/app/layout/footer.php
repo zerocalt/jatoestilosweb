@@ -31,6 +31,19 @@
       crossorigin="anonymous"
     ></script>
     <!--end::Required Plugin(Bootstrap 5)--><!--begin::Required Plugin(AdminLTE)-->
+    <script src="../../js/jquery.mask.min.js"></script>
+    <script>
+      var behavior = function (val) {
+          return val.replace(/\D/g, '').length === 11 ? '(00) 00000-0000' : '(00) 0000-00009';
+      },
+      options = {
+          onKeyPress: function (val, e, field, options) {
+              field.mask(behavior.apply({}, arguments), options);
+          }
+      };
+      $('[name="telefone"]').mask(behavior, options);
+      $('[name="cpf"]').mask('000.000.000-00', {reverse: true});
+    </script>
     <script src="../../js/jquery.maskMoney.min.js"></script>
     <script>
       $(function () {

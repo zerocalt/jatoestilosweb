@@ -5,7 +5,7 @@
         <!--end::To the end-->
         <!--begin::Copyright-->
         <strong>
-          Copyright &copy; 2024-2026&nbsp;
+          Copyright &copy; 2026&nbsp;
           <a href="#" class="text-decoration-none">Jato Estilos</a>.
         </strong>
         Todos os direitos reservados.

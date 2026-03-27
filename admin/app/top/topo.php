@@ -8,7 +8,7 @@ require_once($baseDir . "/includes/auth_check.php");
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Jato Estilos | Dashboard</title>
-    <link rel="icon" href="/jatoestilos/admin/app/assets/img/logoP.png" type="image/png" />
+    <link rel="icon" href="../../assets/img/logoP.png" type="image/png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
       rel="stylesheet"

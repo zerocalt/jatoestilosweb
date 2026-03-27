@@ -52,6 +52,14 @@ try {
                 <div class="col-sm-6 text-end">
                     <a href="index.php" class="btn btn-default">Voltar</a>
                     <a href="form.php?id=<?php echo $id; ?>" class="btn btn-primary">Editar</a>
+                    <button type="button" class="btn btn-warning"
+                            onclick="confirmarAcao('bloquear', '<?php echo $id; ?>', '<?php echo addslashes($cliente['nome']); ?>')">
+                        <i class="bi bi-slash-circle"></i> Bloquear
+                    </button>
+                    <button type="button" class="btn btn-danger"
+                            onclick="confirmarAcao('excluir', '<?php echo $id; ?>', '<?php echo addslashes($cliente['nome']); ?>')">
+                        <i class="bi bi-trash"></i> Excluir
+                    </button>
                 </div>
             </div>
         </div>
@@ -127,5 +135,59 @@ try {
         </div>
     </div>
 </main>
+
+<!-- Modal de confirmação -->
+<div class="modal fade" id="modalAcao" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" id="modalHeader">
+                <h5 class="modal-title" id="modalTitulo"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="modalMensagem"></p>
+                <div id="campoMotivo" style="display:none;">
+                    <label class="form-label">Motivo do bloqueio</label>
+                    <input type="text" id="inputMotivo" class="form-control" 
+                           placeholder="Ex: Cliente problemático, duplicado...">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn" id="btnConfirmar" onclick="executarAcao()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let acaoAtual = '', idAtual = '';
+
+function confirmarAcao(acao, id, nome) {
+    acaoAtual = acao; idAtual = id;
+    const modal = document.getElementById;
+    if (acao === 'bloquear') {
+        document.getElementById('modalTitulo').textContent = 'Bloquear Cliente';
+        document.getElementById('modalMensagem').textContent = `Bloquear "${nome}"? O cliente não poderá mais acessar o estabelecimento, mas o histórico será mantido.`;
+        document.getElementById('campoMotivo').style.display = 'block';
+        document.getElementById('btnConfirmar').className = 'btn btn-warning';
+        document.getElementById('btnConfirmar').textContent = 'Bloquear';
+        document.getElementById('modalHeader').className = 'modal-header bg-warning';
+    } else {
+        document.getElementById('modalTitulo').textContent = 'Excluir Cliente';
+        document.getElementById('modalMensagem').textContent = `Excluir "${nome}"? Se o cliente tiver registros, será bloqueado automaticamente. Se não tiver, será excluído definitivamente.`;
+        document.getElementById('campoMotivo').style.display = 'none';
+        document.getElementById('btnConfirmar').className = 'btn btn-danger';
+        document.getElementById('btnConfirmar').textContent = 'Excluir';
+        document.getElementById('modalHeader').className = 'modal-header bg-danger text-white';
+    }
+    new bootstrap.Modal(document.getElementById('modalAcao')).show();
+}
+
+function executarAcao() {
+    const motivo = document.getElementById('inputMotivo').value;
+    window.location.href = `action.php?acao=${acaoAtual}&id=${idAtual}&motivo=${encodeURIComponent(motivo)}`;
+}
+</script>
 
 <?php require_once("../../layout/footer.php"); ?>

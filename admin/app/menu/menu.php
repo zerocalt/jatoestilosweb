@@ -5,7 +5,7 @@ $active_submenu = isset($active_submenu) ? $active_submenu : '';
 ?>
         <div class="sidebar-brand" style="padding-left: -15px; background-color: #1C3B51 !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important; box-sizing: border-box !important;">
           <a href="../dashboard/index.php" class="brand-link" style="display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important; text-align: center !important; gap: 8px !important; padding: 0 !important; margin: 0 auto !important;">
-            <img src="/jatoestilos/admin/app/assets/img/logoP.png" alt="Logo Jato Estilos" class="brand-image" style="float: none !important; width: 33px !important; height: auto !important; margin: 0 !important;">
+            <img src="../../assets/img/logoP.png" alt="Logo Jato Estilos" class="brand-image" style="float: none !important; width: 33px !important; height: auto !important; margin: 0 !important;">
             <span class="brand-text fw-bold" style="color: white !important; margin: 0 !important;">JATO ESTILOS</span>
           </a>
         </div>

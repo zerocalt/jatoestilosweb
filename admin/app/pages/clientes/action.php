@@ -1,9 +1,4 @@
 <?php
-// ═══════════════════════════════════════════════
-// session_start() ANTES DE TUDO — corrige o bug
-// ═══════════════════════════════════════════════
-session_start();
-
 require_once("../../config/database.php");
 require_once("../../config/functions.php");
 

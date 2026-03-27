@@ -1,4 +1,5 @@
 <?php
+session_start();
 // admin/app/config/database.php
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'jatoestilos');

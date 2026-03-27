@@ -1,9 +1,9 @@
 <?php
+require_once("../../config/database.php");
+require_once("../../config/functions.php");
 require_once("../../top/topo.php");
 $active_menu = 'caixa';
 require_once("../../menu/menu.php");
-require_once("../../config/database.php");
-require_once("../../config/functions.php");
 
 $estabelecimento_id = $_SESSION['estabelecimento_id'];
 

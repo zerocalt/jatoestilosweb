@@ -1,10 +1,10 @@
 <?php
+require_once("../../config/database.php");
+require_once("../../config/functions.php");
 require_once("../../top/topo.php");
 $active_menu = 'relatorios';
 $active_submenu = 'comissoes';
 require_once("../../menu/menu.php");
-require_once("../../config/database.php");
-require_once("../../config/functions.php");
 
 $estabelecimento_id = $_SESSION['estabelecimento_id'];
 $prof_id = $_GET['profissional_id'] ?? '';

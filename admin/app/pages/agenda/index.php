@@ -1,9 +1,10 @@
 <?php
+require_once("../../config/database.php");
+require_once("../../config/functions.php");
 require_once("../../top/topo.php");
 $active_menu = 'agenda';
 require_once("../../menu/menu.php");
-require_once("../../config/database.php");
-require_once("../../config/functions.php");
+
 
 $estabelecimento_id = $_SESSION['estabelecimento_id'];
 $data_selecionada = $_GET['data'] ?? date('Y-m-d');

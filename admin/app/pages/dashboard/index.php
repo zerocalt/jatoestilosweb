@@ -3,9 +3,6 @@ require_once("../../config/database.php");
 require_once("../../config/functions.php");
 require_once("../../config/permissions.php");
 exigirLogin();
-$active_menu = 'dashboard';
-require_once("../../top/topo.php");
-require_once("../../menu/menu.php");
 
 $estabelecimento_id = $_SESSION['estabelecimento_id'];
 $hoje = date('Y-m-d');
@@ -48,6 +45,9 @@ try {
 } catch (PDOException $e) {
     die("Erro no dashboard: " . $e->getMessage());
 }
+$active_menu = 'dashboard';
+require_once("../../top/topo.php");
+require_once("../../menu/menu.php");
 ?>
 
 <main class="app-main">

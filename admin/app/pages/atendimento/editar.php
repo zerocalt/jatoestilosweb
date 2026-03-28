@@ -5,18 +5,27 @@ require_once("../../config/permissions.php");
 exigirLogin();
 
 $estabelecimento_id = $_SESSION['estabelecimento_id'];
+$id = $_GET['id'] ?? null;
 
-// Verificar se existe caixa aberto
-$stmt = $pdo->prepare("SELECT id FROM caixas WHERE estabelecimento_id = :estab_id AND status = 'aberto' LIMIT 1");
-$stmt->execute(['estab_id' => $estabelecimento_id]);
-$caixa_aberto = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$caixa_aberto) {
-    header("Location: ../caixa/index.php");
+if (!$id) {
+    header("Location: checkin.php");
     exit;
 }
 
 try {
+    // Carregar dados do agendamento
+    $stmt = $pdo->prepare("SELECT * FROM vw_agenda_dia WHERE agendamento_id = :id AND estabelecimento_id = :estab_id");
+    $stmt->execute(['id' => $id, 'estab_id' => $estabelecimento_id]);
+    $agendamento = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Debug: exibir os dados do agendamento
+    error_log("Agendamento carregado: " . print_r($agendamento, true));
+
+    if (!$agendamento) {
+        header("Location: checkin.php");
+        exit;
+    }
+
     // Carregar dados necessários
     $clientes = $pdo->prepare("SELECT id, nome FROM clientes WHERE estabelecimento_id = :estab_id AND deleted_at IS NULL AND bloqueado = 0 ORDER BY nome ASC");
     $clientes->execute(['estab_id' => $estabelecimento_id]);
@@ -30,10 +39,10 @@ try {
     $servicos->execute(['estab_id' => $estabelecimento_id]);
     $lista_servicos = $servicos->fetchAll(PDO::FETCH_ASSOC);
 
-    // Carregar atendimentos em andamento (interno)
-    $stmt = $pdo->prepare("SELECT * FROM vw_agenda_dia WHERE estabelecimento_id = :estab_id AND status = 'em_atendimento' AND origem = 'interno' ORDER BY data_inicio DESC");
-    $stmt->execute(['estab_id' => $estabelecimento_id]);
-    $atendimentos_andamento = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Carregar serviços do agendamento
+    $stmt = $pdo->prepare("SELECT servico_id FROM agendamento_servicos WHERE agendamento_id = :id");
+    $stmt->execute(['id' => $id]);
+    $servicos_selecionados = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
 } catch (PDOException $e) {
     die("Erro ao carregar dados: " . $e->getMessage());
@@ -67,32 +76,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $servicos_detalhes[] = array_merge($s_info, ['id' => $s_id]);
             }
 
-            $data_inicio = date('Y-m-d H:i:s');
-            $data_fim = date('Y-m-d H:i:s', strtotime($data_inicio . " + $duracao_total minutes"));
-
-            // Inserir agendamento (status em_atendimento)
-            $stmt = $pdo->prepare("INSERT INTO agendamentos (id, estabelecimento_id, profissional_id, cliente_id, cliente_nome_avulso, data_inicio, data_fim, status, origem, valor_total_centavos, observacoes) VALUES (uuid(), :estab_id, :prof_id, :cli_id, :cli_avulso, :inicio, :fim, 'em_atendimento', 'interno', :total, :obs)");
+            // Atualizar agendamento
+            $stmt = $pdo->prepare("UPDATE agendamentos SET cliente_id = :cli_id, cliente_nome_avulso = :cli_avulso, profissional_id = :prof_id, observacoes = :obs, valor_total_centavos = :total WHERE id = :id");
             $stmt->execute([
-                'estab_id' => $estabelecimento_id,
-                'prof_id' => $profissional_id,
                 'cli_id' => $cliente_id,
                 'cli_avulso' => $cliente_nome_avulso,
-                'inicio' => $data_inicio,
-                'fim' => $data_fim,
+                'prof_id' => $profissional_id,
+                'obs' => $observacoes,
                 'total' => $valor_total,
-                'obs' => $observacoes
+                'id' => $id
             ]);
-            
-            // Buscar o ID inserido
-            $stmt = $pdo->prepare("SELECT id FROM agendamentos WHERE profissional_id = :prof_id AND data_inicio = :inicio ORDER BY created_at DESC LIMIT 1");
-            $stmt->execute(['prof_id' => $profissional_id, 'inicio' => $data_inicio]);
-            $ag_id = $stmt->fetchColumn();
 
-            // Inserir serviços do agendamento
+            // Atualizar serviços do agendamento
+            $stmt = $pdo->prepare("DELETE FROM agendamento_servicos WHERE agendamento_id = :id");
+            $stmt->execute(['id' => $id]);
+
             foreach ($servicos_detalhes as $idx => $s_det) {
                 $stmt = $pdo->prepare("INSERT INTO agendamento_servicos (id, agendamento_id, servico_id, valor_cobrado_centavos, duracao_minutos, ordem) VALUES (uuid(), :ag_id, :s_id, :valor, :duracao, :ordem)");
                 $stmt->execute([
-                    'ag_id' => $ag_id,
+                    'ag_id' => $id,
                     's_id' => $s_det['id'],
                     'valor' => $s_det['valor_centavos'],
                     'duracao' => $s_det['duracao_minutos'],
@@ -105,10 +107,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         } catch (Exception $e) {
             $pdo->rollBack();
-            $error = "Erro ao registrar check-in: " . $e->getMessage();
+            $error = "Erro ao editar check-in: " . $e->getMessage();
         }
     }
 }
+
 $active_menu = 'checkin';
 require_once("../../top/topo.php");
 require_once("../../menu/menu.php");
@@ -119,11 +122,11 @@ require_once("../../menu/menu.php");
         <div class="container-fluid">
             <div class="row">
                 <div class="col-sm-6">
-                    <h3 class="mb-0">Check-in Walk-in</h3>
+                    <h3 class="mb-0">Editar Check-in</h3>
                 </div>
                 <div class="col-sm-6">
                     <div class="d-flex justify-content-end">
-                        <span class="badge bg-success">Caixa Aberto</span>
+                        <span class="badge bg-warning">Em Atendimento</span>
                     </div>
                 </div>
             </div>
@@ -148,26 +151,26 @@ require_once("../../menu/menu.php");
                                         <select name="cliente_id" class="form-select" id="selectCliente">
                                             <option value="">-- Selecione ou digite nome avulso --</option>
                                             <?php foreach ($lista_clientes as $c): ?>
-                                                <option value="<?php echo $c['id']; ?>"><?php echo sanitize($c['nome']); ?></option>
+                                                <option value="<?php echo $c['id']; ?>" <?php echo isset($agendamento['cliente_id']) && $agendamento['cliente_id'] == $c['id'] ? 'selected' : ''; ?>><?php echo sanitize($c['nome']); ?></option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Nome Cliente Avulso</label>
-                                        <input type="text" name="cliente_nome_avulso" class="form-control" placeholder="Ex: João da Silva">
+                                        <input type="text" name="cliente_nome_avulso" class="form-control" placeholder="Ex: João da Silva" value="<?php echo isset($agendamento['cliente_nome']) ? sanitize($agendamento['cliente_nome']) : ''; ?>">
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Profissional *</label>
                                         <select name="profissional_id" class="form-select" required>
                                             <option value="">-- Selecione --</option>
                                             <?php foreach ($lista_profissionais as $p): ?>
-                                                <option value="<?php echo $p['id']; ?>"><?php echo sanitize($p['nome']); ?></option>
+                                                <option value="<?php echo $p['id']; ?>" <?php echo $agendamento['profissional_id'] == $p['id'] ? 'selected' : ''; ?>><?php echo sanitize($p['nome']); ?></option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Observações</label>
-                                        <input type="text" name="observacoes" class="form-control" placeholder="Ex: Indicação, motivo da visita...">
+                                        <input type="text" name="observacoes" class="form-control" placeholder="Ex: Indicação, motivo da visita..." value="<?php echo isset($agendamento['observacoes']) ? sanitize($agendamento['observacoes']) : ''; ?>">
                                     </div>
                                     
                                     <div class="col-md-12 mb-3">
@@ -176,7 +179,7 @@ require_once("../../menu/menu.php");
                                             <?php foreach ($lista_servicos as $s): ?>
                                                 <div class="col-md-4 mb-2">
                                                     <div class="form-check">
-                                                        <input class="form-check-input servico-checkbox" type="checkbox" name="servicos[]" value="<?php echo $s['id']; ?>" id="s_<?php echo $s['id']; ?>">
+                                                        <input class="form-check-input servico-checkbox" type="checkbox" name="servicos[]" value="<?php echo $s['id']; ?>" id="s_<?php echo $s['id']; ?>" <?php echo in_array($s['id'], $servicos_selecionados) ? 'checked' : ''; ?>>
                                                         <label class="form-check-label" for="s_<?php echo $s['id']; ?>">
                                                             <?php echo sanitize($s['nome']); ?> 
                                                             <span class="text-muted">(<?php echo $s['duracao_minutos']; ?>min)</span>
@@ -192,13 +195,13 @@ require_once("../../menu/menu.php");
                             <div class="card-footer">
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <a href="../agenda/index.php" class="btn btn-default">
-                                            <i class="bi bi-arrow-left"></i> Voltar para Agenda
+                                        <a href="checkin.php" class="btn btn-default">
+                                            <i class="bi bi-arrow-left"></i> Voltar
                                         </a>
                                     </div>
                                     <div class="col-md-6 text-end">
-                                        <button type="submit" class="btn btn-success btn-lg">
-                                            <i class="bi bi-person-check"></i> Registrar Check-in
+                                        <button type="submit" class="btn btn-primary btn-lg">
+                                            <i class="bi bi-save"></i> Salvar Alterações
                                         </button>
                                     </div>
                                 </div>
@@ -208,7 +211,7 @@ require_once("../../menu/menu.php");
                 </div>
                 <div class="col-md-4">
                     <div class="card">
-                        <div class="card-header bg-primary text-white">
+                        <div class="card-header bg-warning text-white">
                             <h5 class="card-title mb-0">Resumo do Check-in</h5>
                         </div>
                         <div class="card-body">
@@ -233,49 +236,6 @@ require_once("../../menu/menu.php");
                                 <span class="fw-bold">Status</span>
                                 <span class="fw-bold fs-4 text-warning">Em Atendimento</span>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="card mt-3">
-                        <div class="card-header">
-                            <h6 class="mb-0">Atendimentos em Andamento</h6>
-                        </div>
-                        <div class="card-body">
-                            <?php if (empty($atendimentos_andamento)): ?>
-                                <p class="text-muted text-center mb-0">Nenhum atendimento em andamento</p>
-                            <?php else: ?>
-                                <div class="table-responsive">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Cliente</th>
-                                                <th>Serviços</th>
-                                                <th>Início</th>
-                                                <th>Ações</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php foreach ($atendimentos_andamento as $at): ?>
-                                                <tr>
-                                                    <td><?php echo sanitize($at['cliente_nome']); ?></td>
-                                                    <td><?php echo sanitize($at['servicos_nomes']); ?></td>
-                                                    <td><?php echo date('H:i', strtotime($at['data_inicio'])); ?></td>
-                                                    <td>
-                                                        <div class="btn-group btn-group-sm" role="group">
-                                                            <a href="editar.php?id=<?php echo $at['agendamento_id']; ?>" class="btn btn-outline-primary" title="Editar">
-                                                                <i class="bi bi-pencil"></i> Editar
-                                                            </a>
-                                                            <a href="../agenda/concluir.php?id=<?php echo $at['agendamento_id']; ?>" class="btn btn-outline-success" title="Concluir">
-                                                                <i class="bi bi-check-circle"></i> Concluir
-                                                            </a>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -343,6 +303,9 @@ document.querySelector('input[name="cliente_nome_avulso"]').addEventListener('in
         document.getElementById('selectCliente').value = '';
     }
 });
+
+// Atualizar resumo ao carregar a página
+atualizarResumo();
 </script>
 
 <?php require_once("../../layout/footer.php"); ?>

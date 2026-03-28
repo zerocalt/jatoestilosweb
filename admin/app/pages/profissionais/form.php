@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $comissao_percentual = (float)($_POST['comissao_percentual'] ?? 0);
     $ativo = isset($_POST['ativo']) ? 1 : 0;
     $tem_acesso = isset($_POST['tem_acesso']) ? 1 : 0;
-    $perfil_acesso = in_array($_POST['perfil_acesso'] ?? '', ['profissional','atendente']) ? $_POST['perfil_acesso'] : 'profissional';
+    $perfil_acesso = in_array($_POST['perfil_acesso'] ?? '', ['profissional','atendente','gerente']) ? $_POST['perfil_acesso'] : 'profissional';
     $senha = $_POST['senha'] ?? '';
     $senha_confirma = $_POST['senha_confirma'] ?? '';
 
@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $dias_semana = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-$tem_acesso_atual = $profissional && !empty($profissional['email']) && in_array($profissional['usuario_perfil']??'', ['profissional','atendente']);
+$tem_acesso_atual = $profissional && !empty($profissional['email']) && in_array($profissional['usuario_perfil']??'', ['profissional','atendente','gerente']);
 
 require_once("../../top/topo.php");
 $active_menu = 'profissionais';
@@ -115,7 +115,8 @@ require_once("../../menu/menu.php");
 
         <form method="post">
             <div class="row">
-                <!-- Dados Pessoais + Horários -->
+
+                <!-- ── Dados Pessoais + Horários ── -->
                 <div class="col-md-4">
                     <div class="card">
                         <div class="card-header"><h3 class="card-title"><i class="bi bi-person me-2"></i>Dados Pessoais</h3></div>
@@ -145,20 +146,35 @@ require_once("../../menu/menu.php");
                             </div>
                         </div>
                     </div>
+
+                    <!-- ── Horários de Trabalho ── -->
                     <div class="card mt-3">
-                        <div class="card-header"><h3 class="card-title"><i class="bi bi-clock me-2"></i>Horários de Trabalho</h3></div>
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h3 class="card-title mb-0"><i class="bi bi-clock me-2"></i>Horários de Trabalho</h3>
+                            <div class="d-flex gap-1">
+                                <button type="button" class="btn btn-xs btn-outline-success py-0 px-2" style="font-size:11px;" onclick="marcarDias(true)">
+                                    <i class="bi bi-check-all"></i> Todos
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2" style="font-size:11px;" onclick="marcarDias(false)">
+                                    <i class="bi bi-x-lg"></i> Nenhum
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" style="font-size:11px;" onclick="marcarUteis()">
+                                    Seg-Sáb
+                                </button>
+                            </div>
+                        </div>
                         <div class="card-body p-0">
                             <table class="table table-sm align-middle mb-0">
                                 <thead><tr><th style="width:36px"></th><th>Dia</th><th>Início</th><th>Fim</th><th>Interv.</th></tr></thead>
                                 <tbody>
                                 <?php foreach ($dias_semana as $idx => $dia):
-                                    $ck=$isset=$horarios[$idx]??null;
+                                    $ck=$horarios[$idx]??null;
                                     $ini=$ck?$ck['hora_inicio']:'08:00';
                                     $fim_h=$ck?$ck['hora_fim']:'18:00';
                                     $inv=$ck?($ck['intervalo_minutos']??30):30;
                                 ?>
                                 <tr>
-                                    <td><input type="checkbox" name="dias[<?php echo $idx;?>]" value="1" <?php echo $ck?'checked':'';?>></td>
+                                    <td><input type="checkbox" class="dia-check" name="dias[<?php echo $idx;?>]" value="1" <?php echo $ck?'checked':'';?>></td>
                                     <td><?php echo $dia;?></td>
                                     <td><input type="time" name="hora_inicio[<?php echo $idx;?>]" class="form-control form-control-sm" value="<?php echo $ini;?>"></td>
                                     <td><input type="time" name="hora_fim[<?php echo $idx;?>]" class="form-control form-control-sm" value="<?php echo $fim_h;?>"></td>
@@ -177,7 +193,7 @@ require_once("../../menu/menu.php");
                     </div>
                 </div>
 
-                <!-- Acesso + Permissões -->
+                <!-- ── Acesso + Permissões ── -->
                 <div class="col-md-8">
                     <div class="card">
                         <div class="card-header"><h3 class="card-title"><i class="bi bi-shield-lock me-2"></i>Acesso e Permissões</h3></div>
@@ -191,11 +207,18 @@ require_once("../../menu/menu.php");
                             <div id="blocoAcesso" style="<?php echo $tem_acesso_atual?'':'display:none;';?>">
                                 <div class="row mb-3">
                                     <div class="col-md-4">
-                                        <label class="form-label">Perfil</label>
-                                        <select name="perfil_acesso" class="form-select">
-                                            <option value="atendente"    <?php echo ($profissional['usuario_perfil']??'')==='atendente'   ?'selected':'';?>>Atendente</option>
-                                            <option value="gerente" <?php echo ($profissional['usuario_perfil']??'')==='gerente'?'selected':'';?>>Gerente (acesso amplo)</option>
+                                        <label class="form-label">Perfil
+                                            <i class="bi bi-info-circle text-muted ms-1"
+                                               title="Ao trocar o perfil, as permissões são preenchidas automaticamente (editável)"
+                                               style="cursor:help;"></i>
+                                        </label>
+                                        <select name="perfil_acesso" id="perfilAcesso" class="form-select"
+                                                onchange="aplicarPermissoesPerfil(this.value)"
+                                                required>
+                                            <option value="" disabled selected>-- Selecione o perfil --</option>
                                             <option value="profissional" <?php echo ($profissional['usuario_perfil']??'')==='profissional'?'selected':'';?>>Profissional</option>
+                                            <option value="atendente"    <?php echo ($profissional['usuario_perfil']??'')==='atendente'   ?'selected':'';?>>Atendente</option>
+                                            <option value="gerente"      <?php echo ($profissional['usuario_perfil']??'')==='gerente'      ?'selected':'';?>>Gerente (acesso amplo)</option>
                                         </select>
                                     </div>
                                     <div class="col-md-4">
@@ -213,6 +236,10 @@ require_once("../../menu/menu.php");
                                 </div>
 
                                 <hr>
+
+                                <!-- Badge do perfil selecionado -->
+                                <div id="badgePerfil" class="alert py-2 mb-3" style="font-size:13px;"></div>
+
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <h5 class="mb-0"><i class="bi bi-key me-1"></i>Permissões</h5>
                                     <div class="d-flex gap-2">
@@ -229,7 +256,8 @@ require_once("../../menu/menu.php");
                                                 <?php foreach(['pode_ver'=>'Ver','pode_criar'=>'Criar','pode_editar'=>'Editar','pode_excluir'=>'Excluir'] as $ac=>$lbl): ?>
                                                 <th class="text-center" style="width:75px;">
                                                     <div><?php echo $lbl;?></div>
-                                                    <input type="checkbox" class="form-check-input" onchange="marcarColuna('<?php echo $ac;?>',this.checked)" style="cursor:pointer;">
+                                                    <input type="checkbox" class="form-check-input col-master" data-col="<?php echo $ac;?>"
+                                                           onchange="marcarColuna('<?php echo $ac;?>',this.checked)" style="cursor:pointer;">
                                                 </th>
                                                 <?php endforeach; ?>
                                             </tr>
@@ -242,7 +270,7 @@ require_once("../../menu/menu.php");
                                             <td>
                                                 <i class="bi <?php echo $info['icone'];?> me-1 text-muted"></i>
                                                 <?php echo $info['label'];?>
-                                                <?php if($info['sensivel']): ?><i class="bi bi-lock-fill text-danger ms-1" title="Sensível"></i><?php endif;?>
+                                                <?php if($info['sensivel']): ?><i class="bi bi-lock-fill text-danger ms-1" title="Módulo sensível"></i><?php endif;?>
                                             </td>
                                             <?php foreach(['pode_ver','pode_criar','pode_editar','pode_excluir'] as $ac): ?>
                                             <td class="text-center">
@@ -260,7 +288,10 @@ require_once("../../menu/menu.php");
                                         </tbody>
                                     </table>
                                 </div>
-                                <small class="text-muted mt-1 d-block"><i class="bi bi-lock-fill text-danger"></i> Fundo amarelo = módulo sensível (financeiro)</small>
+                                <small class="text-muted mt-1 d-block">
+                                    <i class="bi bi-lock-fill text-danger"></i> Fundo amarelo = módulo sensível (financeiro).
+                                    As permissões são sugestões baseadas no perfil — você pode ajustar livremente.
+                                </small>
                             </div>
 
                             <div id="blocoSemAcesso" style="<?php echo $tem_acesso_atual?'display:none;':'';?>">
@@ -280,69 +311,192 @@ require_once("../../menu/menu.php");
 </main>
 
 <script>
-function toggleAcesso(a){
-    document.getElementById('blocoAcesso').style.display=a?'block':'none';
-    document.getElementById('blocoSemAcesso').style.display=a?'none':'block';
+// ── Permissões padrão por perfil ──────────────────────────────
+// Formato: { modulo: [ver, criar, editar, excluir] }
+const PERMISSOES_PADRAO = {
+    profissional: {
+        agenda:          [1,0,0,0],
+        clientes:        [0,0,0,0],
+        servicos:        [1,0,0,0],
+        caixa_hoje:      [0,0,0,0],
+        caixa_historico: [0,0,0,0],
+        despesas:        [0,0,0,0],
+        profissionais:   [0,0,0,0],
+        relatorios:      [1,0,0,0],
+        configuracoes:   [0,0,0,0],
+    },
+    atendente: {
+        agenda:          [1,1,1,0],
+        clientes:        [1,1,1,0],
+        servicos:        [1,0,0,0],
+        caixa_hoje:      [1,1,0,0],
+        caixa_historico: [0,0,0,0],
+        despesas:        [0,0,0,0],
+        profissionais:   [0,0,0,0],
+        relatorios:      [0,0,0,0],
+        configuracoes:   [0,0,0,0],
+    },
+    gerente: {
+        agenda:          [1,1,1,1],
+        clientes:        [1,1,1,0],
+        servicos:        [1,1,1,0],
+        caixa_hoje:      [1,1,1,0],
+        caixa_historico: [1,0,0,0],
+        despesas:        [1,1,1,0],
+        profissionais:   [1,0,0,0],
+        relatorios:      [1,0,0,0],
+        configuracoes:   [0,0,0,0],
+    },
+};
+
+const BADGE_PERFIL = {
+    profissional: { cls:'alert-secondary', txt:'<i class="bi bi-scissors me-1"></i><strong>Profissional</strong> — acessa apenas a própria agenda e comissões.' },
+    atendente:    { cls:'alert-info',      txt:'<i class="bi bi-person-badge me-1"></i><strong>Atendente</strong> — acessa agenda, clientes e caixa do dia. Sem acesso a dados financeiros.' },
+    gerente:      { cls:'alert-warning',   txt:'<i class="bi bi-shield-fill me-1"></i><strong>Gerente</strong> — acesso amplo ao sistema. Confirme sua senha ao salvar.' },
+};
+
+const ACOES = ['pode_ver','pode_criar','pode_editar','pode_excluir'];
+
+function aplicarPermissoesPerfil(perfil) {
+    const badge = document.getElementById('badgePerfil');
+
+    if (!perfil) {
+        badge.style.display = 'none';
+        marcarTodos(false); // limpa tudo se voltar para em branco
+        return;
+    }
+
+    badge.style.display = 'block';
+
+    const padrao = PERMISSOES_PADRAO[perfil];
+    if (padrao) {
+        Object.entries(padrao).forEach(([modulo, vals]) => {
+            ACOES.forEach((acao, idx) => {
+                const chk = document.querySelector(`.perm-check[data-modulo="${modulo}"][data-acao="${acao}"]`);
+                if (chk) chk.checked = vals[idx] === 1;
+            });
+        });
+
+        ACOES.forEach(acao => {
+            const todos  = [...document.querySelectorAll(`.perm-check[data-acao="${acao}"]`)];
+            const master = document.querySelector(`.col-master[data-col="${acao}"]`);
+            if (master) master.checked = todos.every(c => c.checked);
+        });
+    }
+
+    const b = BADGE_PERFIL[perfil];
+    if (b) {
+        badge.className = 'alert py-2 mb-3 ' + b.cls;
+        badge.innerHTML = b.txt;
+    }
 }
-function marcarColuna(ac,checked){
-    document.querySelectorAll(`.perm-check[data-acao="${ac}"]`).forEach(c=>{
-        c.checked=checked;
-        if(checked&&ac!=='pode_ver'){
-            const v=document.querySelector(`.perm-check[data-modulo="${c.dataset.modulo}"][data-acao="pode_ver"]`);
-            if(v)v.checked=true;
+
+// ── Horários: marcar/desmarcar dias ──────────────────────────
+function marcarDias(checked) {
+    document.querySelectorAll('.dia-check').forEach(c => c.checked = checked);
+}
+
+function marcarUteis() {
+    // Domingo=0, Sábado=6 — marca Seg(1) a Sáb(6)
+    document.querySelectorAll('.dia-check').forEach((c, idx) => {
+        c.checked = idx >= 1; // desmarca apenas Domingo
+    });
+}
+
+// ── Permissões: marcar coluna e tudo ────────────────────────
+function marcarColuna(ac, checked) {
+    document.querySelectorAll(`.perm-check[data-acao="${ac}"]`).forEach(c => {
+        c.checked = checked;
+        if (checked && ac !== 'pode_ver') {
+            const v = document.querySelector(`.perm-check[data-modulo="${c.dataset.modulo}"][data-acao="pode_ver"]`);
+            if (v) v.checked = true;
         }
     });
 }
-function marcarTodos(c){document.querySelectorAll('.perm-check').forEach(x=>x.checked=c);}
-document.querySelectorAll('.perm-check').forEach(chk=>{
-    chk.addEventListener('change',function(){
-        const m=this.dataset.modulo,a=this.dataset.acao;
-        if(a==='pode_ver'&&!this.checked){
-            ['pode_criar','pode_editar','pode_excluir'].forEach(x=>{
-                const o=document.querySelector(`.perm-check[data-modulo="${m}"][data-acao="${x}"]`);
-                if(o)o.checked=false;
+
+function marcarTodos(c) {
+    document.querySelectorAll('.perm-check').forEach(x => x.checked = c);
+    document.querySelectorAll('.col-master').forEach(x => x.checked = c);
+}
+
+// ── Regras automáticas por linha ────────────────────────────
+document.querySelectorAll('.perm-check').forEach(chk => {
+    chk.addEventListener('change', function() {
+        const m = this.dataset.modulo, a = this.dataset.acao;
+        if (a === 'pode_ver' && !this.checked) {
+            ['pode_criar','pode_editar','pode_excluir'].forEach(x => {
+                const o = document.querySelector(`.perm-check[data-modulo="${m}"][data-acao="${x}"]`);
+                if (o) o.checked = false;
             });
         }
-        if(a!=='pode_ver'&&this.checked){
-            const v=document.querySelector(`.perm-check[data-modulo="${m}"][data-acao="pode_ver"]`);
-            if(v)v.checked=true;
+        if (a !== 'pode_ver' && this.checked) {
+            const v = document.querySelector(`.perm-check[data-modulo="${m}"][data-acao="pode_ver"]`);
+            if (v) v.checked = true;
         }
     });
 });
-document.getElementById('telefone')?.addEventListener('input',function(){
-    let v=this.value.replace(/\D/g,'').substring(0,11);
-    if(v.length>6)v='('+v.substring(0,2)+') '+v.substring(2,7)+'-'+v.substring(7);
-    else if(v.length>2)v='('+v.substring(0,2)+') '+v.substring(2);
-    else if(v.length>0)v='('+v;
-    this.value=v;
+
+// ── Toggle acesso ─────────────────────────────────────────
+function toggleAcesso(a) {
+    document.getElementById('blocoAcesso').style.display    = a ? 'block' : 'none';
+    document.getElementById('blocoSemAcesso').style.display = a ? 'none'  : 'block';
+}
+
+// ── Inicializa badge e permissões ao carregar ─────────────
+document.addEventListener('DOMContentLoaded', function() {
+    const sel    = document.getElementById('perfilAcesso');
+    const badge  = document.getElementById('badgePerfil');
+    const temAcesso = document.getElementById('temAcessoSwitch')?.checked;
+
+    if (!sel || !temAcesso) return;
+
+    const perfilAtual = sel.value;
+
+    if (perfilAtual) {
+        // Editando profissional existente — só mostra o badge,
+        // mantém as permissões salvas no banco
+        const b = BADGE_PERFIL[perfilAtual];
+        if (b) {
+            badge.className = 'alert py-2 mb-3 ' + b.cls;
+            badge.innerHTML = b.txt;
+        }
+    } else {
+        // Novo profissional — esconde o badge até escolher o perfil
+        badge.style.display = 'none';
+    }
+});
+
+// ── Máscara telefone ─────────────────────────────────────
+document.getElementById('telefone')?.addEventListener('input', function() {
+    let v = this.value.replace(/\D/g,'').substring(0,11);
+    if (v.length > 6)      v = '('+v.substring(0,2)+') '+v.substring(2,7)+'-'+v.substring(7);
+    else if (v.length > 2) v = '('+v.substring(0,2)+') '+v.substring(2);
+    else if (v.length > 0) v = '('+v;
+    this.value = v;
 });
 </script>
 
-<!-- Modal de confirmação de senha do admin -->
+<!-- Modal confirmação de senha admin -->
 <div class="modal fade" id="modalConfirmarSenha" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">
-                    <i class="bi bi-shield-lock-fill me-2"></i>Confirmação de Segurança
-                </h5>
+                <h5 class="modal-title"><i class="bi bi-shield-lock-fill me-2"></i>Confirmação de Segurança</h5>
             </div>
             <div class="modal-body">
                 <p class="text-muted mb-3" style="font-size:13px;">
-                    Você está criando um profissional com acesso a dados sensíveis.
+                    Você está salvando um profissional com acesso a dados sensíveis.
                     Confirme sua senha de administrador para continuar.
                 </p>
                 <label class="form-label">Sua senha de admin</label>
                 <div class="input-group">
-                    <input type="password" id="senhaConfirmAdmin" class="form-control"
-                           placeholder="Digite sua senha" autocomplete="current-password">
-                    <button type="button" class="btn btn-outline-secondary"
-                            onclick="toggleSenhaModal()">
+                    <input type="password" id="senhaConfirmAdmin" class="form-control" placeholder="Digite sua senha" autocomplete="current-password">
+                    <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('senhaConfirmAdmin').type = document.getElementById('senhaConfirmAdmin').type==='password'?'text':'password'">
                         <i class="bi bi-eye"></i>
                     </button>
                 </div>
                 <div id="erroSenhaAdmin" class="text-danger mt-2" style="font-size:12px;display:none;">
-                    <i class="bi bi-exclamation-circle"></i> Senha incorreta. Tente novamente.
+                    <i class="bi bi-exclamation-circle"></i> Senha incorreta.
                 </div>
             </div>
             <div class="modal-footer">
@@ -355,90 +509,52 @@ document.getElementById('telefone')?.addEventListener('input',function(){
         </div>
     </div>
 </div>
-
-<!-- Campo oculto que recebe a senha do admin confirmada -->
 <input type="hidden" name="senha_admin_confirmada" id="senhaAdminConfirmada" value="">
-<input type="hidden" name="requer_confirmacao" id="requerConfirmacao" value="0">
 
 <script>
-// Perfis que exigem confirmação de senha do admin
-const PERFIS_SENSIVEIS = ['gerente', 'atendente'];
+const PERFIS_SENSIVEIS = ['gerente','atendente'];
 
-// Intercepta o submit do formulário
 document.querySelector('form').addEventListener('submit', function(e) {
     const temAcesso = document.getElementById('temAcessoSwitch')?.checked;
-    if (!temAcesso) return; // sem acesso, não precisa confirmar
-
-    const perfil = document.querySelector('[name="perfil_acesso"]')?.value;
-    if (!PERFIS_SENSIVEIS.includes(perfil)) return; // profissional simples, não confirma
-
-    // Verifica se já confirmou a senha nesta sessão de submit
+    if (!temAcesso) return;
+    const perfil = document.getElementById('perfilAcesso')?.value;
+    if (!PERFIS_SENSIVEIS.includes(perfil)) return;
     if (document.getElementById('senhaAdminConfirmada').value !== '') return;
-
-    // Bloqueia o submit e abre o modal
     e.preventDefault();
-    document.getElementById('requerConfirmacao').value = '1';
     document.getElementById('erroSenhaAdmin').style.display = 'none';
     document.getElementById('senhaConfirmAdmin').value = '';
     new bootstrap.Modal(document.getElementById('modalConfirmarSenha')).show();
     setTimeout(() => document.getElementById('senhaConfirmAdmin').focus(), 400);
 });
 
-function toggleSenhaModal() {
-    const c = document.getElementById('senhaConfirmAdmin');
-    c.type = c.type === 'password' ? 'text' : 'password';
-}
-
 function cancelarConfirmacao() {
     bootstrap.Modal.getInstance(document.getElementById('modalConfirmarSenha')).hide();
     document.getElementById('senhaAdminConfirmada').value = '';
-    document.getElementById('requerConfirmacao').value = '0';
 }
 
 async function verificarSenhaAdmin() {
     const senha = document.getElementById('senhaConfirmAdmin').value;
-    if (!senha) {
-        document.getElementById('erroSenhaAdmin').style.display = 'block';
-        document.getElementById('erroSenhaAdmin').textContent = 'Digite sua senha para continuar.';
-        return;
-    }
-
-    // Mostra spinner
+    if (!senha) { document.getElementById('erroSenhaAdmin').style.display='block'; return; }
     document.getElementById('btnSpinner').classList.remove('d-none');
     document.getElementById('btnConfirmarAdmin').disabled = true;
-
     try {
-        const resp = await fetch('../../includes/verificar_senha.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'senha=' + encodeURIComponent(senha)
-        });
+        const resp = await fetch('../../includes/verificar_senha.php', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'senha='+encodeURIComponent(senha) });
         const data = await resp.json();
-
         if (data.ok) {
-            // Senha correta — coloca no campo oculto e submete
             document.getElementById('senhaAdminConfirmada').value = senha;
             bootstrap.Modal.getInstance(document.getElementById('modalConfirmarSenha')).hide();
             document.querySelector('form').submit();
         } else {
             document.getElementById('erroSenhaAdmin').style.display = 'block';
-            document.getElementById('erroSenhaAdmin').innerHTML = '<i class="bi bi-exclamation-circle"></i> Senha incorreta.';
             document.getElementById('senhaConfirmAdmin').value = '';
             document.getElementById('senhaConfirmAdmin').focus();
         }
-    } catch(err) {
-        document.getElementById('erroSenhaAdmin').style.display = 'block';
-        document.getElementById('erroSenhaAdmin').textContent = 'Erro de conexão. Tente novamente.';
-    }
-
+    } catch(e) { document.getElementById('erroSenhaAdmin').style.display='block'; }
     document.getElementById('btnSpinner').classList.add('d-none');
     document.getElementById('btnConfirmarAdmin').disabled = false;
 }
 
-// Enter no campo de senha confirma
-document.getElementById('senhaConfirmAdmin')?.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') verificarSenhaAdmin();
-});
+document.getElementById('senhaConfirmAdmin')?.addEventListener('keypress', e => { if(e.key==='Enter') verificarSenhaAdmin(); });
 </script>
 
 <?php require_once("../../layout/footer.php"); ?>

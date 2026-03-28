@@ -3,10 +3,6 @@ require_once("../../config/database.php");
 require_once("../../config/functions.php");
 require_once("../../config/permissions.php");
 exigirLogin();
-$active_menu = 'agenda';
-require_once("../../top/topo.php");
-require_once("../../menu/menu.php");
-
 
 $estabelecimento_id = $_SESSION['estabelecimento_id'];
 $data_selecionada = $_GET['data'] ?? date('Y-m-d');
@@ -35,6 +31,9 @@ try {
 } catch (PDOException $e) {
     die("Erro ao carregar agenda: " . $e->getMessage());
 }
+$active_menu = 'agenda';
+require_once("../../top/topo.php");
+require_once("../../menu/menu.php");
 ?>
 
 <main class="app-main">
@@ -97,9 +96,11 @@ try {
                                     </div>
                                 </div>
                                 <div class="card-body">
-                                    <h5 class="card-title mb-1"><?php echo sanitize($ag['cliente_nome']); ?></h5>
-                                    <p class="card-text text-muted small mb-2"><?php echo sanitize($ag['servicos_nomes']); ?></p>
-                                    <hr class="my-2">
+                                    <h5 class="card-title mb-3" style="padding-right: 20px;"><?php echo sanitize($ag['cliente_nome']); ?></h5>
+                                    <div class="mb-4">
+                                        <span class="badge bg-secondary"><?php echo sanitize($ag['servicos_nomes']); ?></span>
+                                    </div>
+                                    <hr class="my-4">
                                     <p class="mb-0 small">
                                         <strong>Profissional:</strong> <?php echo sanitize($ag['profissional_nome']); ?><br>
                                         <strong>Duração:</strong> <?php echo $ag['duracao_total_minutos']; ?> min
@@ -112,6 +113,7 @@ try {
                                         <?php endif; ?>
                                         
                                         <?php if ($ag['status'] == 'em_atendimento'): ?>
+                                            <a href="../atendimento/editar.php?id=<?php echo $ag['agendamento_id']; ?>" class="btn btn-sm btn-outline-warning">Editar</a>
                                             <a href="concluir.php?id=<?php echo $ag['agendamento_id']; ?>" class="btn btn-sm btn-success">Concluir</a>
                                         <?php endif; ?>
 

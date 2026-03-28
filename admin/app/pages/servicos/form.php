@@ -1,8 +1,6 @@
 <?php
 require_once("../../config/database.php");
 require_once("../../config/functions.php");
-require_once("../../top/topo.php");
-require_once("../../menu/menu.php");
 
 $estabelecimento_id = $_SESSION['estabelecimento_id'];
 $id = $_GET['id'] ?? null;
@@ -55,6 +53,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Erro ao salvar serviço: " . $e->getMessage();
     }
 }
+$active_menu = 'servicos';
+require_once("../../top/topo.php");
+require_once("../../menu/menu.php");
 ?>
 
 <main class="app-main">

@@ -206,9 +206,7 @@ if ($cliente && $id) {
     }
 }
 
-// ═══════════════════════════════════════════════
-// HTML — SOMENTE DEPOIS DO PROCESSAMENTO PHP
-// ═══════════════════════════════════════════════
+$active_menu = 'clientes';
 require_once("../../top/topo.php");
 require_once("../../menu/menu.php");
 ?>

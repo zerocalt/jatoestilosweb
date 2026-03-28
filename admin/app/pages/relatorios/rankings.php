@@ -1,10 +1,6 @@
 <?php
 require_once("../../config/database.php");
 require_once("../../config/functions.php");
-require_once("../../top/topo.php");
-$active_menu = 'relatorios';
-$active_submenu = 'rankings';
-require_once("../../menu/menu.php");
 
 $estabelecimento_id = $_SESSION['estabelecimento_id'];
 
@@ -22,6 +18,11 @@ try {
 } catch (PDOException $e) {
     die("Erro: " . $e->getMessage());
 }
+
+require_once("../../top/topo.php");
+$active_menu = 'relatorios';
+$active_submenu = 'rankings';
+require_once("../../menu/menu.php");
 ?>
 
 <main class="app-main">

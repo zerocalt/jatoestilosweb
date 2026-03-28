@@ -1,8 +1,6 @@
 <?php
 require_once("../../config/database.php");
 require_once("../../config/functions.php");
-require_once("../../top/topo.php");
-require_once("../../menu/menu.php");
 
 $estabelecimento_id = $_SESSION['estabelecimento_id'];
 $id = $_GET['id'] ?? null;
@@ -53,6 +51,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Erro ao salvar despesa: " . $e->getMessage();
     }
 }
+
+$active_menu = 'despesas';
+require_once("../../top/topo.php");
+require_once("../../menu/menu.php");
 
 $categorias = ['aluguel', 'energia', 'agua', 'internet', 'telefone', 'materiais', 'salarios', 'outros'];
 ?>

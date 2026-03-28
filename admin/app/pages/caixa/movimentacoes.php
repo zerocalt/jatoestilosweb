@@ -1,8 +1,6 @@
 <?php
 require_once("../../config/database.php");
 require_once("../../config/functions.php");
-require_once("../../top/topo.php");
-require_once("../../menu/menu.php");
 
 $estabelecimento_id = $_SESSION['estabelecimento_id'];
 $tipo = $_GET['tipo'] ?? 'sangria'; // 'sangria' ou 'suprimento'
@@ -39,6 +37,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Erro ao registrar: " . $e->getMessage();
     }
 }
+$active_menu = 'caixa';
+require_once("../../top/topo.php");
+require_once("../../menu/menu.php");
 ?>
 
 <main class="app-main">

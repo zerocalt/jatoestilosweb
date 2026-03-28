@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-if (!isset($_SESSION['admin_id'])) {
+if (!isset($_SESSION['usuario_id'])) {
     // We are usually 3 levels deep from the admin root (e.g., app/pages/dashboard/index.php)
     // Redirecting to login.php in the admin root.
     $host = $_SERVER['HTTP_HOST'];

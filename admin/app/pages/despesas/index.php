@@ -40,6 +40,8 @@ foreach ($despesas as $d) {
 
 $categorias = ['aluguel','energia','agua','internet','telefone','materiais','salarios','outros'];
 
+require_once("../../config/permissions.php");
+exigirLogin();
 require_once("../../top/topo.php");
 $active_menu = 'despesas';
 require_once("../../menu/menu.php");

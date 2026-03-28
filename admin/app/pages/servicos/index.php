@@ -21,6 +21,8 @@ $stmt = $pdo->prepare("SELECT * FROM servicos WHERE estabelecimento_id = :estab_
 $stmt->execute(['estab_id' => $estabelecimento_id]);
 $servicos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+require_once("../../config/permissions.php");
+exigirLogin();
 require_once("../../top/topo.php");
 $active_menu = 'servicos';
 require_once("../../menu/menu.php");

@@ -24,6 +24,8 @@ $stmt = $pdo->prepare("SELECT p.*, u.nome, u.email, u.telefone, u.foto_url AS us
 $stmt->execute(['estab_id' => $estabelecimento_id]);
 $profissionais = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+require_once("../../config/permissions.php");
+exigirLogin();
 require_once("../../top/topo.php");
 $active_menu = 'profissionais';
 require_once("../../menu/menu.php");

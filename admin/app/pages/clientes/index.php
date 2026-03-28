@@ -45,6 +45,8 @@ $stmtB->execute($paramsB);
 $clientes_bloqueados = $stmtB->fetchAll(PDO::FETCH_ASSOC);
 
 // HTML somente aqui
+require_once("../../config/permissions.php");
+exigirLogin();
 require_once("../../top/topo.php");
 $active_menu = 'clientes';
 require_once("../../menu/menu.php");

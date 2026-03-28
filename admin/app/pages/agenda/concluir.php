@@ -1,8 +1,6 @@
 <?php
 require_once("../../config/database.php");
 require_once("../../config/functions.php");
-require_once("../../top/topo.php");
-require_once("../../menu/menu.php");
 
 $estabelecimento_id = $_SESSION['estabelecimento_id'];
 $id = $_GET['id'] ?? null;
@@ -69,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'descr' => "Atendimento: " . $agendamento['cliente_nome'],
                 'valor' => $valor_final_centavos,
                 'forma' => $forma_pagamento,
-                'operador' => $_SESSION['admin_id']
+                'operador' => $_SESSION['usuario_id']
             ]);
 
             // Calcular e Registrar Comissão
@@ -99,6 +97,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+require_once("../../top/topo.php");
+require_once("../../menu/menu.php");
 ?>
 
 <main class="app-main">
@@ -147,7 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                                 <div class="mb-3">
                                     <label class="form-label">Forma de Pagamento *</label>
-                                    <select name="forma_pagamento" class="form-select" required>
+                                    <select name="forma_pagamento" id="formaPagamento" class="form-select" required>
                                         <option value="dinheiro">Dinheiro</option>
                                         <option value="debito">Cartão de Débito</option>
                                         <option value="credito">Cartão de Crédito</option>
@@ -155,9 +155,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <option value="voucher">Voucher</option>
                                     </select>
                                 </div>
+                                
+                                <div class="mb-3" id="campoValorRecebido" style="display: none;">
+                                    <label class="form-label">Valor Recebido (R$)</label>
+                                    <input type="text" name="valor_recebido" id="valorRecebido" class="form-control mask-money" placeholder="0,00">
+                                </div>
+                                
+                                <div class="mb-3" id="campoTroco" style="display: none;">
+                                    <label class="form-label">Troco (R$)</label>
+                                    <input type="text" class="form-control" id="troco" readonly>
+                                </div>
+                                
                                 <div class="mb-3">
                                     <label class="form-label">Desconto (R$)</label>
-                                    <input type="number" step="0.01" name="desconto_real" class="form-control" placeholder="0,00">
+                                    <input type="text" name="desconto_real" id="descontoReal" class="form-control mask-money" placeholder="0,00">
                                 </div>
                             </div>
                             <div class="card-footer text-end">
@@ -171,5 +182,117 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </main>
+
+<script>
+// Função para converter string monetária BR para número
+function parseMoney(value) {
+    if (!value) return 0;
+
+    value = value.toString().trim();
+
+    // Remove tudo que não for número, vírgula, ponto ou sinal
+    value = value.replace(/[^\d,.-]/g, '');
+
+    // Remove pontos de milhar e troca vírgula por ponto decimal
+    value = value.replace(/\./g, '').replace(',', '.');
+
+    const numero = parseFloat(value);
+    return isNaN(numero) ? 0 : numero;
+}
+
+function formatMoneyBR(value) {
+    return value.toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+function calcularTroco() {
+    const formaPagamento = document.getElementById('formaPagamento').value;
+    const campoTroco = document.getElementById('campoTroco');
+    const trocoInput = document.getElementById('troco');
+
+    // Só calcula troco se for dinheiro
+    if (formaPagamento !== 'dinheiro') {
+        trocoInput.value = '';
+        campoTroco.style.display = 'none';
+        return;
+    }
+
+    const totalCentavos = <?php echo (int)$total_servicos; ?>;
+    const total = totalCentavos / 100;
+
+    const desconto = parseMoney(document.getElementById('descontoReal').value);
+    const valorRecebido = parseMoney(document.getElementById('valorRecebido').value);
+
+    const totalFinal = total - desconto;
+    const troco = valorRecebido - totalFinal;
+
+    // Sempre mostra o campo troco quando for dinheiro
+    campoTroco.style.display = 'block';
+
+    if (troco >= 0) {
+        trocoInput.value = formatMoneyBR(troco);
+    } else {
+        trocoInput.value = '0,00';
+    }
+
+}
+
+// Mostrar/ocultar campos quando mudar forma de pagamento
+document.getElementById('formaPagamento').addEventListener('change', function() {
+    const isDinheiro = this.value === 'dinheiro';
+    const campoValorRecebido = document.getElementById('campoValorRecebido');
+    const campoTroco = document.getElementById('campoTroco');
+    const valorRecebido = document.getElementById('valorRecebido');
+    const troco = document.getElementById('troco');
+
+    if (isDinheiro) {
+        campoValorRecebido.style.display = 'block';
+        campoTroco.style.display = 'block';
+
+        const totalCentavos = <?php echo (int)$total_servicos; ?>;
+        const total = totalCentavos / 100;
+
+        // Se estiver vazio, preenche com o total
+        if (!valorRecebido.value.trim()) {
+            valorRecebido.value = formatMoneyBR(total);
+        }
+
+        // Pequeno atraso para funcionar bem com máscara
+        setTimeout(calcularTroco, 50);
+    } else {
+        campoValorRecebido.style.display = 'none';
+        campoTroco.style.display = 'none';
+        valorRecebido.value = '';
+        troco.value = '';
+    }
+});
+
+// Função para vincular múltiplos eventos (melhor com máscara monetária)
+function bindTrocoEvents(idCampo) {
+    const campo = document.getElementById(idCampo);
+
+    ['input', 'keyup', 'change', 'blur'].forEach(evento => {
+        campo.addEventListener(evento, function() {
+            // Pequeno delay para aguardar a máscara atualizar o valor
+            setTimeout(calcularTroco, 10);
+        });
+    });
+}
+
+// Vincular eventos nos campos
+bindTrocoEvents('valorRecebido');
+bindTrocoEvents('descontoReal');
+
+// Ao carregar a página
+document.addEventListener('DOMContentLoaded', function() {
+    const formaPagamento = document.getElementById('formaPagamento');
+
+    if (formaPagamento.value === 'dinheiro') {
+        formaPagamento.dispatchEvent(new Event('change'));
+    }
+});
+</script>
 
 <?php require_once("../../layout/footer.php"); ?>

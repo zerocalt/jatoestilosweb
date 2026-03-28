@@ -24,6 +24,18 @@ $active_submenu = isset($active_submenu) ? $active_submenu : '';
                   <p>Agenda</p>
                 </a>
               </li>
+              <li class="nav-item <?php echo ($active_menu == 'atendimento') ? 'active' : ''; ?>">
+                <a href="../atendimento/rapido.php" class="nav-link <?php echo ($active_menu == 'atendimento') ? 'active' : ''; ?>">
+                  <i class="nav-icon bi bi-person-plus"></i>
+                  <p>Atendimento Rápido</p>
+                </a>
+              </li>
+              <li class="nav-item <?php echo ($active_menu == 'checkin') ? 'active' : ''; ?>">
+                <a href="../atendimento/checkin.php" class="nav-link <?php echo ($active_menu == 'checkin') ? 'active' : ''; ?>">
+                  <i class="nav-icon bi bi-person-check"></i>
+                  <p>Check-in Walk-in</p>
+                </a>
+              </li>
               <li class="nav-item <?php echo ($active_menu == 'clientes') ? 'active' : ''; ?>">
                 <a href="../clientes/index.php" class="nav-link <?php echo ($active_menu == 'clientes') ? 'active' : ''; ?>">
                   <i class="nav-icon bi bi-people-fill"></i>
@@ -63,12 +75,18 @@ $active_submenu = isset($active_submenu) ? $active_submenu : '';
                   </p>
                 </a>
                 <ul class="nav nav-treeview">
-                  <li class="nav-item">
-                    <a href="../relatorios/financeiro.php" class="nav-link <?php echo ($active_menu == 'relatorios' && $active_submenu == 'financeiro') ? 'active' : ''; ?>">
-                      <i class="nav-icon bi bi-circle"></i>
-                      <p>Financeiro</p>
-                    </a>
-                  </li>
+                            <li class="nav-item">
+                                <a href="../atendimento/index.php" class="nav-link <?php echo $active_menu === 'atendimento' ? 'active' : ''; ?>">
+                                    <i class="bi bi-person-plus"></i>
+                                    <p>Atendimento</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../atendimento/checkin.php" class="nav-link <?php echo $active_menu === 'checkin' ? 'active' : ''; ?>">
+                                    <i class="bi bi-person-check"></i>
+                                    <p>Check-in Walk-in</p>
+                                </a>
+                            </li>
                   <li class="nav-item">
                     <a href="../relatorios/agendamentos.php" class="nav-link <?php echo ($active_menu == 'relatorios' && $active_submenu == 'agendamentos') ? 'active' : ''; ?>">
                       <i class="nav-icon bi bi-circle"></i>

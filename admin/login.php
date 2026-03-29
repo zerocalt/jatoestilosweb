@@ -3,7 +3,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Jato Estilos | Login</title>
-    <link rel="icon" href="/jatoestilos/admin/app/assets/img/logoP.png" type="image/png" />
+    <link rel="icon" href="app/assets/img/logoP.png" type="image/png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.11.0/styles/overlayscrollbars.min.css" />
@@ -63,6 +63,20 @@
               </div>
             </div>
           </form>
+
+          <div class="row mt-3">
+            <div class="col-12 text-end">
+              <a href="#" class="text-decoration-none text-muted">Esqueceu a senha?</a>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-12">
+              <div class="d-grid gap-2">
+                <a href="cadastro-empresa.php" class="btn btn-outline-primary">Cadastre sua Empresa</a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

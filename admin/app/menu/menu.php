@@ -75,18 +75,6 @@ $active_submenu = isset($active_submenu) ? $active_submenu : '';
                   </p>
                 </a>
                 <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="../atendimento/index.php" class="nav-link <?php echo $active_menu === 'atendimento' ? 'active' : ''; ?>">
-                                    <i class="bi bi-person-plus"></i>
-                                    <p>Atendimento</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="../atendimento/checkin.php" class="nav-link <?php echo $active_menu === 'checkin' ? 'active' : ''; ?>">
-                                    <i class="bi bi-person-check"></i>
-                                    <p>Check-in Walk-in</p>
-                                </a>
-                            </li>
                   <li class="nav-item">
                     <a href="../relatorios/agendamentos.php" class="nav-link <?php echo ($active_menu == 'relatorios' && $active_submenu == 'agendamentos') ? 'active' : ''; ?>">
                       <i class="nav-icon bi bi-circle"></i>
